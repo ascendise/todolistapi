@@ -2,6 +2,7 @@ package ch.ascendise.todolistapi.user
 
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.stereotype.Service
 
@@ -15,12 +16,15 @@ class OAuth2UserService(val userRepository: UserRepository) : OidcUserService() 
         {
             userRepository.save(user);
         }
+        val test = userRepository.findAll()
         return oidcUser;
     }
 
-    private fun convertOidcUser(oidcUser: OidcUser): User = User(
-        id = 0,
-        email = oidcUser.email,
-        username = oidcUser.nickName
-    );
+    private fun convertOidcUser(oidcUser: OidcUser): User {
+        return User(
+            id = 0,
+            email = oidcUser.attributes["email"] as String,
+            username = oidcUser.attributes["given_name"] as String
+        )
+    }
 }
