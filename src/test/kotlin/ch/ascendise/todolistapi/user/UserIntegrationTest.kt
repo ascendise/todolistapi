@@ -49,7 +49,7 @@ class UserIntegrationTest() {
     @Test
     fun `Show info of current user`() {
         val expectedUser = User(1, "maxmuster@mail.com", "Max Muster")
-        every { userRepository.findByEmail(expectedUser.email) } returns listOf(expectedUser)
+        every { userRepository.findByEmail(expectedUser.email) } returns expectedUser
         val oidcUser = DefaultOidcUser(
             AuthorityUtils.createAuthorityList("SCOPE_message:read"),
             OidcIdToken.withTokenValue("id-token")

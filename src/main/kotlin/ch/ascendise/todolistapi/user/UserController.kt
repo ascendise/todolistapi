@@ -11,6 +11,6 @@ class UserController(
 ) {
 
     @GetMapping("/user")
-    fun getCurrentUser(@AuthenticationPrincipal oidcUser: OidcUser) : User =
-        userRepository.findByEmail(oidcUser.attributes["email"] as String).first()
+    fun getCurrentUser(@AuthenticationPrincipal oidcUser: OidcUser) : User? =
+        userRepository.findByEmail(oidcUser.attributes["email"] as String)
 }
