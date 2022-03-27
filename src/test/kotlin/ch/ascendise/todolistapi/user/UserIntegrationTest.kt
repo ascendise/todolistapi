@@ -8,12 +8,10 @@ import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import org.springframework.security.test.context.support.WithAnonymousUser
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
@@ -49,8 +47,6 @@ class UserIntegrationTest() {
     }
 
     @Test
-    @PostAuthorize("authorized")
-    @WithMockUser(username = "Max Muster")
     fun `Show info of current user`() {
         val expectedUser = User(1, "maxmuster@mail.com", "Max Muster")
         every { userRepository.findByEmail(expectedUser.email) } returns listOf(expectedUser)
