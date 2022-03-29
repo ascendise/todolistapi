@@ -14,9 +14,9 @@ class UserController(
 ) {
 
     @GetMapping("/user")
-    fun getCurrentUser(@AuthenticationPrincipal oidcUser: OidcUser) : EntityModel<User>? =
+    fun getCurrentUser(@AuthenticationPrincipal oidcUser: OidcUser) : EntityModel<User> =
         userRepository.findByEmail(oidcUser.attributes["email"] as String)
-            ?.let {userModelAssembler.toModel(it)}
+            .let {userModelAssembler.toModel(it)}
 
     @DeleteMapping("/user")
     fun deleteCurrentUser(@AuthenticationPrincipal oidcUser: OidcUser) =

@@ -82,7 +82,7 @@ class UserIntegrationTest() {
                 .with(csrf())
         )
             .andExpect(status().is2xxSuccessful)
-        assertTrue(userRepository.findByEmail(user.email) == null, "User was not deleted")
+        assertTrue(userRepository.findAll().size == 0, "User was not deleted")
     }
 
     @Test
