@@ -16,8 +16,10 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import javax.transaction.Transactional
+import org.hamcrest.core.Is.`is`
 
 
 @SpringBootTest
@@ -81,5 +83,18 @@ class UserIntegrationTest() {
         )
             .andExpect(status().is2xxSuccessful)
         assertTrue(userRepository.findByEmail(user.email) == null, "User was not deleted")
+    }
+
+    @Test
+    fun `Show available operations for user`() {
+        val expectedUser = User(1, "maxmuster@mail.com", "Max Muster")
+        userRepository.save(expectedUser)
+        val oidcUser = createOidcUser(expectedUser)
+        mockMvc.perform(
+            get("/user").with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().is2xxSuccessful)
+            .andExpect(jsonPath("_links.self.href", `is`("http://localhost/user")))
+            .andExpect(jsonPath("_links.user.href", `is`("http://localhost/user")))
     }
 }
