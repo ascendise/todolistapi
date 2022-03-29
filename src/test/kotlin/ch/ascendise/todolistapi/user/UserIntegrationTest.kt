@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import javax.transaction.Transactional
 import org.hamcrest.core.Is.`is`
+import org.junit.jupiter.api.Assertions.assertEquals
 
 
 @SpringBootTest
@@ -45,6 +46,14 @@ class UserIntegrationTest() {
     fun `Get redirected when not authenticated`()
     {
         mockMvc.perform(get("/"))
+            .andExpect(status().is3xxRedirection)
+    }
+
+    @Test
+    @WithAnonymousUser()
+    fun `Get redirected for authentication when trying to access user`()
+    {
+        mockMvc.perform(get("/user"))
             .andExpect(status().is3xxRedirection)
     }
 
@@ -83,6 +92,20 @@ class UserIntegrationTest() {
         )
             .andExpect(status().is2xxSuccessful)
         assertTrue(userRepository.findAll().size == 0, "User was not deleted")
+    }
+
+    @Test
+    fun `Deleting user does not have a response body`() {
+        val user = User(1, "email", "name")
+        userRepository.save(user)
+        val oidcUser = createOidcUser(user)
+        val result = mockMvc.perform(
+            delete("/user").with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+        )
+            .andExpect(status().isNoContent)
+            .andReturn()
+        assertEquals("", result.response.contentAsString, "Response Body is not empty")
     }
 
     @Test
