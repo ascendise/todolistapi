@@ -1,8 +1,6 @@
 package ch.ascendise.todolistapi.user
 
-import com.ninjasquad.springmockk.MockkBean
-import io.mockk.every
-import io.mockk.verify
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,16 +17,18 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delet
 
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import javax.transaction.Transactional
 
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class UserIntegrationTest() {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    @MockkBean
+    @Autowired
     private lateinit var userRepository: UserRepository
 
     @Test
@@ -49,7 +49,7 @@ class UserIntegrationTest() {
     @Test
     fun `Show info of current user`() {
         val expectedUser = User(1, "maxmuster@mail.com", "Max Muster")
-        every { userRepository.findByEmail(expectedUser.email) } returns expectedUser
+        userRepository.save(expectedUser)
         val oidcUser = createOidcUser(expectedUser)
         val result = mockMvc.perform(
             get("/user").with(oidcLogin().oidcUser(oidcUser))
@@ -72,14 +72,14 @@ class UserIntegrationTest() {
 
     @Test
     fun `Delete user`() {
-        val user = User(1, "Name", "Email")
-        every {userRepository.deleteByEmail(user.email)} returns Unit
+        val user = User(1, "email", "name")
+        userRepository.save(user)
         val oidcUser = createOidcUser(user)
         mockMvc.perform(
             delete("/user").with(oidcLogin().oidcUser(oidcUser))
                 .with(csrf())
         )
             .andExpect(status().is2xxSuccessful)
-        verify { userRepository.deleteByEmail(user.email) }
+        assertTrue(userRepository.findByEmail(user.email) == null, "User was not deleted")
     }
 }
