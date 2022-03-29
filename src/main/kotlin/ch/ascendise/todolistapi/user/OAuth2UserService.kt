@@ -12,8 +12,9 @@ class OAuth2UserService(val userRepository: UserRepository) : OidcUserService() 
     override fun loadUser(userRequest: OidcUserRequest) : OidcUser {
         val oidcUser = super.loadUser(userRequest)
         val user = convertOidcUser(oidcUser)
-        if(!userRepository.exists(Example.of(user)))
+        if(!userRepository.existsByEmail(user.email))
         {
+            println("Created user")
             userRepository.save(user)
         }
         return oidcUser
