@@ -8,7 +8,7 @@ class TaskService(
     val taskRepository: TaskRepository
 ) {
 
-    fun createTask(task: Task) {
+    fun put(task: Task) {
         if(task.endDate?.isBefore(task.startDate) == true ||
                 task.startDate.isBefore(LocalDate.now()))
         {

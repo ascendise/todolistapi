@@ -21,12 +21,12 @@ class TaskServiceTest {
     fun `Create new task`(){
         val task = Task(
             name = "Test",
-            description = "Test the createTask method",
+            description = "Test TaskService",
             startDate = LocalDate.now(),
             endDate = LocalDate.now().plusDays(1)
         )
         every { taskRepository.save(task) } returns task
-        taskService.createTask(task)
+        taskService.put(task)
         verify { taskRepository.save(task) }
     }
 
@@ -35,11 +35,11 @@ class TaskServiceTest {
     {
         val task = Task(
             name = "Test",
-            description = "Test createTask method",
+            description = "Test TaskService",
             startDate = LocalDate.now().plusDays(1),
             endDate = LocalDate.now()
         )
-        assertThrows<InvalidTaskException> { taskService.createTask(task) }
+        assertThrows<InvalidTaskException> { taskService.put(task) }
     }
 
     @Test
@@ -51,7 +51,7 @@ class TaskServiceTest {
             endDate = null
         )
         every { taskRepository.save(task) } returns task
-        taskService.createTask(task)
+        taskService.put(task)
         verify { taskRepository.save(task) }
     }
 
@@ -64,7 +64,7 @@ class TaskServiceTest {
             startDate = LocalDate.now().plusDays(1)
         )
         every { taskRepository.save(task) } returns task
-        taskService.createTask(task)
+        taskService.put(task)
         verify { taskRepository.save(task) }
     }
 
@@ -77,7 +77,7 @@ class TaskServiceTest {
             endDate = LocalDate.now(),
         )
         every { taskRepository.save(task) } returns task
-        taskService.createTask(task)
+        taskService.put(task)
         verify { taskRepository.save(task) }
     }
 
@@ -89,6 +89,7 @@ class TaskServiceTest {
             description = "",
             startDate = LocalDate.now().minusDays(1)
         )
-        assertThrows<InvalidTaskException> { taskService.createTask(task) }
+        assertThrows<InvalidTaskException> { taskService.put(task) }
     }
+
 }
