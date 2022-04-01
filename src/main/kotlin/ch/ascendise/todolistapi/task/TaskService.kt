@@ -9,12 +9,14 @@ class TaskService(
 ) {
 
     fun put(task: Task) {
-        if(task.endDate?.isBefore(task.startDate) == true ||
-                task.startDate.isBefore(LocalDate.now()))
-        {
+        if (task.endDate?.isBefore(task.startDate) == true ||
+            task.startDate.isBefore(LocalDate.now())
+        ) {
             throw InvalidTaskException()
         }
         taskRepository.save(task)
     }
+
+    fun getAll(userId: Long): Set<Task> = taskRepository.findAllByUserId(userId).toSet()
 
 }
