@@ -10,7 +10,7 @@ import javax.persistence.OneToMany
 
 @Entity
 class User(
-    @Id @GeneratedValue var id: Long,
+    @Id @GeneratedValue var id: Long = 0,
     @Column(unique = true) var email: String,
     @Column(unique = true) var username: String,
     @OneToMany var tasks: Set<Task> = emptySet()

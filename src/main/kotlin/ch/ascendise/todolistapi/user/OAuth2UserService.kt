@@ -22,7 +22,6 @@ class OAuth2UserService(val userRepository: UserRepository) : OidcUserService() 
 
     private fun convertOidcUser(oidcUser: OidcUser): User {
         return User(
-            id = 0,
             email = oidcUser.attributes["email"] as String,
             username = oidcUser.attributes["given_name"] as String
         )
