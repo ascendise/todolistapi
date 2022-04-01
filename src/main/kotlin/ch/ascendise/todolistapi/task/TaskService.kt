@@ -9,6 +9,10 @@ class TaskService(
 ) {
 
     fun createTask(task: Task) {
+        if(task.endDate?.isBefore(task.startDate) == true)
+        {
+            throw InvalidTaskException()
+        }
         taskRepository.save(task)
     }
 
