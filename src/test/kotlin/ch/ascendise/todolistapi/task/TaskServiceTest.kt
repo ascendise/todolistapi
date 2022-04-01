@@ -111,6 +111,12 @@ class TaskServiceTest {
         verify { taskRepository.findAllByUserId(1) }
     }
 
-
+    @Test
+    fun `Delete task`()
+    {
+        justRun { taskRepository.deleteById(1) }
+        taskService.delete(1)
+        verify { taskRepository.deleteById(1)}
+    }
 
 }

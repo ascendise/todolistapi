@@ -18,5 +18,7 @@ class TaskService(
     }
 
     fun getAll(userId: Long): Set<Task> = taskRepository.findAllByUserId(userId).toSet()
+    fun delete(taskId: Long) = taskRepository.deleteById(taskId)
+
 
 }
