@@ -80,4 +80,15 @@ class TaskServiceTest {
         taskService.createTask(task)
         verify { taskRepository.save(task) }
     }
+
+    @Test
+    fun `Can't create task that starts before today`()
+    {
+        val task = Task(
+            name = "",
+            description = "",
+            startDate = LocalDate.now().minusDays(1)
+        )
+        assertThrows<InvalidTaskException> { taskService.createTask(task) }
+    }
 }

@@ -1,7 +1,7 @@
 package ch.ascendise.todolistapi.task
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 @Service
 class TaskService(
@@ -9,7 +9,8 @@ class TaskService(
 ) {
 
     fun createTask(task: Task) {
-        if(task.endDate?.isBefore(task.startDate) == true)
+        if(task.endDate?.isBefore(task.startDate) == true ||
+                task.startDate.isBefore(LocalDate.now()))
         {
             throw InvalidTaskException()
         }
