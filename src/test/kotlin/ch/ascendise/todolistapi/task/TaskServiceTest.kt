@@ -41,4 +41,43 @@ class TaskServiceTest {
         )
         assertThrows<InvalidTaskException> { taskService.createTask(task) }
     }
+
+    @Test
+    fun `Create task with minimal information`()
+    {
+        val task = Task(
+            name = "",
+            description = "",
+            endDate = null
+        )
+        every { taskRepository.save(task) } returns task
+        taskService.createTask(task)
+        verify { taskRepository.save(task) }
+    }
+
+    @Test
+    fun `Create task with only a start date`()
+    {
+        val task = Task(
+            name = "",
+            description = "",
+            startDate = LocalDate.now().plusDays(1)
+        )
+        every { taskRepository.save(task) } returns task
+        taskService.createTask(task)
+        verify { taskRepository.save(task) }
+    }
+
+    @Test
+    fun `Create task with only an end date`()
+    {
+        val task = Task(
+            name = "",
+            description = "",
+            endDate = LocalDate.now(),
+        )
+        every { taskRepository.save(task) } returns task
+        taskService.createTask(task)
+        verify { taskRepository.save(task) }
+    }
 }
