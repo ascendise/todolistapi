@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import java.time.LocalDate
 
 @SpringBootTest
@@ -120,11 +121,17 @@ class TaskServiceTest {
     }
 
     @Test
-    fun `Return specific task`()
-    {
+    fun `Return specific task`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         every { taskRepository.findByUserIdAndTaskId(1, 1)} returns Task(name = "Dummy", user = user)
         taskService.getById(user, 1)
         verify { taskRepository.findByUserIdAndTaskId(1, 1)}
+    }
+
+    @Test
+    fun `Throw exception when task is not found`() {
+        val user = User(id = 1, email = "mail@domain.com", username = "Max")
+        every { taskRepository.findByUserIdAndTaskId(1, 101) } returns null
+        assertThrows<NotFoundException> { taskService.getById(user, 101) }
     }
 }
