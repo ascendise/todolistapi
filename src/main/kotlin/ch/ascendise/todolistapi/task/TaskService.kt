@@ -10,13 +10,13 @@ class TaskService(
     val taskRepository: TaskRepository
 ) {
 
-    fun put(task: Task) {
+    fun put(task: Task): Task {
         if (task.endDate?.isBefore(task.startDate) == true ||
             task.startDate.isBefore(LocalDate.now())
         ) {
             throw InvalidTaskException()
         }
-        taskRepository.save(task)
+        return taskRepository.save(task)
     }
 
     fun getAll(userId: Long): Set<Task> = taskRepository.findAllByUserId(userId).toSet()
