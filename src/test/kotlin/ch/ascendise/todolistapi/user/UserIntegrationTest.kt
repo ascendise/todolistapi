@@ -91,11 +91,12 @@ class UserIntegrationTest() {
                 .with(csrf())
         )
             .andExpect(status().is2xxSuccessful)
-        assertTrue(userRepository.findAll().size == 0, "User was not deleted")
+        assertEquals(0, userRepository.findAll().size, "User was not deleted")
     }
 
     @Test
     fun `Deleting user does not have a response body`() {
+        val users = userRepository.findAll()
         val user = User(email = "email", username = "name")
         userRepository.save(user)
         val oidcUser = createOidcUser(user)
