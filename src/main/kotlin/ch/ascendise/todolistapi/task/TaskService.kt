@@ -1,6 +1,7 @@
 package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.user.User
+import org.hibernate.annotations.NotFound
 import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -22,7 +23,7 @@ class TaskService(
     fun getAll(userId: Long): Set<Task> = taskRepository.findAllByUserId(userId).toSet()
     fun delete(taskId: Long) = taskRepository.deleteById(taskId)
     fun getById(user: User, taskId: Long): Task =
-        taskRepository.findByUserIdAndTaskId(user.id, taskId) ?: throw NotFoundException()
+        taskRepository.findByIdAndUserId(taskId, user.id) ?: throw NotFoundException()
 
 
 }

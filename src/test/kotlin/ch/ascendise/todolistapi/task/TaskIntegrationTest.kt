@@ -5,14 +5,11 @@ import ch.ascendise.todolistapi.user.UserRepository
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -41,7 +38,8 @@ class TaskIntegrationTest {
     private lateinit var taskRepository: TaskRepository
 
     private val user = User(username = "Reanu Keeves", email = "mail@domain.com")
-    private val tasks = setOf(Task(name = "Buy bread", description = "Wholegrain", user = user),
+    private val tasks = setOf(
+        Task(name = "Buy bread", description = "Wholegrain", user = user),
         Task(name = "Do Taxes", startDate = LocalDate.now(), endDate = LocalDate.now().plusDays(30), user = user)
     )
 
@@ -85,4 +83,17 @@ class TaskIntegrationTest {
             .build()
     )
 
+    @Test
+    fun `Return specific task for user`() {
+        val oidcUser = createOidcUser(user)
+        val expectedTask = taskRepository.findAllByUserId(user.id).get(0)
+        val result = mockMvc.perform(
+            get("/tasks/${expectedTask.id}").with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+        val jackson = jacksonObjectMapper().registerModule(JavaTimeModule())
+        val actualTask: Task = jackson.readValue(result.response.contentAsString)
+        assertEquals(expectedTask, actualTask, "Returned task does not match expected task")
+    }
 }
