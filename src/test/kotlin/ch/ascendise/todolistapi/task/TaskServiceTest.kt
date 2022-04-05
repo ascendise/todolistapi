@@ -119,4 +119,12 @@ class TaskServiceTest {
         verify { taskRepository.deleteById(1)}
     }
 
+    @Test
+    fun `Return specific task`()
+    {
+        val user = User(id = 1, email = "mail@domain.com", username = "Max")
+        every { taskRepository.findByUserIdAndTaskId(1, 1)} returns Task(name = "Dummy", user = user)
+        taskService.getById(user, 1)
+        verify { taskRepository.findByUserIdAndTaskId(1, 1)}
+    }
 }

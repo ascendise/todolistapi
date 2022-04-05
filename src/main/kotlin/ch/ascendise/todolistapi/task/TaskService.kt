@@ -1,5 +1,6 @@
 package ch.ascendise.todolistapi.task
 
+import ch.ascendise.todolistapi.user.User
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -19,6 +20,9 @@ class TaskService(
 
     fun getAll(userId: Long): Set<Task> = taskRepository.findAllByUserId(userId).toSet()
     fun delete(taskId: Long) = taskRepository.deleteById(taskId)
+    fun getById(user: User, taskId: Long): Task {
+        return taskRepository.findByUserIdAndTaskId(user.id, taskId)
+    }
 
 
 }
