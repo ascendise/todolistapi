@@ -155,4 +155,27 @@ class TaskIntegrationTest {
             .andExpect(jsonPath("_links.tasks.href",`is`("http://localhost/tasks")))
     }
 
+    @Test
+    fun `Return task on POST request`() {
+        val oidcUser = createOidcUser(user)
+        val newTask = Task(
+            name = "Clean bathroom",
+            description = "Close attention to sink",
+            startDate = LocalDate.now().plusDays(5),
+            user = user)
+        val json = jackson.writeValueAsString(newTask)
+        val result = mockMvc.perform(
+            post("/tasks")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(json)
+                .contentType("application/json")
+        )
+            .andExpect(status().isCreated)
+            .andReturn()
+        val responseTask: Task = jackson.readValue(result.response.contentAsString)
+        newTask.id = responseTask.id
+        assertEquals(responseTask, newTask, "Returned task is not the one sent")
+    }
+
 }
