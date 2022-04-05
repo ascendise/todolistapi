@@ -89,6 +89,20 @@ class TaskIntegrationTest {
     )
 
     @Test
+    fun `Correct format for GET all request`() {
+        val oidcUser = createOidcUser(user)
+        val tasks = taskRepository.findAllByUserId(user.id)
+        mockMvc.perform(
+            get("/tasks").with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(jsonPath("_links.self.href", `is`("http://localhost/tasks")))
+            .andExpect(jsonPath("_embedded.taskList[0]._links.self.href",`is`("http://localhost/tasks/${tasks[0].id}")))
+            .andExpect(jsonPath("_embedded.taskList[0]._links.tasks.href",`is`("http://localhost/tasks")))
+    }
+
+    @Test
     fun `Return specific task for user`() {
         val oidcUser = createOidcUser(user)
         val expectedTask = taskRepository.findAllByUserId(user.id).get(0)
@@ -101,18 +115,18 @@ class TaskIntegrationTest {
         val actualTask: Task = jackson.readValue(result.response.contentAsString)
         assertEquals(expectedTask, actualTask, "Returned task does not match expected task")
     }
+
     @Test
-    fun `Correct format for GET all request`() {
+    fun `Correct format for GET request`() {
         val oidcUser = createOidcUser(user)
-        val tasks = taskRepository.findAllByUserId(user.id)
+        val task = taskRepository.findAllByUserId(user.id)[0]
         mockMvc.perform(
-            get("/tasks").with(oidcLogin().oidcUser(oidcUser))
+            get("/tasks/${task.id}").with(oidcLogin().oidcUser(oidcUser))
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/hal+json"))
-            .andExpect(jsonPath("_links.self.href", `is`("http://localhost/tasks")))
-            .andExpect(jsonPath("_embedded.taskList[0]._links.self.href",`is`("http://localhost/tasks/${tasks[0].id}")))
-            .andExpect(jsonPath("_embedded.taskList[0]._links.tasks.href",`is`("http://localhost/tasks")))
+            .andExpect(jsonPath("_links.self.href",`is`("http://localhost/tasks/${task.id}")))
+            .andExpect(jsonPath("_links.tasks.href",`is`("http://localhost/tasks")))
     }
 
 }

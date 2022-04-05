@@ -26,6 +26,7 @@ class TaskController(
     }
 
     @GetMapping("/tasks/{id}")
-    fun getTask(@CurrentUser user: User, @PathVariable id: Long): Task =
+    fun getTask(@CurrentUser user: User, @PathVariable id: Long): EntityModel<Task> =
         taskService.getById(user, id)
+            .let { taskModelAssembler.toModel(it) }
 }
