@@ -1,6 +1,5 @@
 package ch.ascendise.todolistapi.user
 
-import org.springframework.data.domain.Example
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService
 import org.springframework.security.oauth2.core.oidc.user.OidcUser

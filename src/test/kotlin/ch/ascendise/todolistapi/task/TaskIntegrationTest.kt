@@ -2,9 +2,11 @@ package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserRepository
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -19,7 +21,7 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDate
 import javax.transaction.Transactional
 
@@ -38,8 +40,7 @@ class TaskIntegrationTest {
     private lateinit var taskRepository: TaskRepository
 
     private val user = User(username = "Reanu Keeves", email = "mail@domain.com")
-    private val tasks = setOf(
-        Task(name = "Buy bread", description = "Wholegrain", user = user),
+    private val tasks = setOf(Task(name = "Buy bread", description = "Wholegrain", user = user),
         Task(name = "Do Taxes", startDate = LocalDate.now(), endDate = LocalDate.now().plusDays(30), user = user)
     )
 
@@ -69,8 +70,12 @@ class TaskIntegrationTest {
         )
             .andExpect(status().is2xxSuccessful)
             .andReturn()
-        val jackson = jacksonObjectMapper().registerModule(JavaTimeModule())
-        val actualTasks: Set<Task> = jackson.readValue(result.response.contentAsString)
+        val jackson = jacksonObjectMapper()
+            .registerModule(JavaTimeModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        val json = jackson.readTree(result.response.contentAsString)
+        val tasksJson = json.at("/_embedded/taskList").toString()
+        val actualTasks: Set<Task> = jackson.readValue(tasksJson)
         assertTrue(actualTasks.equals(tasks), "Did not return expected tasks")
     }
 
@@ -96,4 +101,18 @@ class TaskIntegrationTest {
         val actualTask: Task = jackson.readValue(result.response.contentAsString)
         assertEquals(expectedTask, actualTask, "Returned task does not match expected task")
     }
+    @Test
+    fun `Correct format for GET all request`() {
+        val oidcUser = createOidcUser(user)
+        val tasks = taskRepository.findAllByUserId(user.id)
+        mockMvc.perform(
+            get("/tasks").with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(jsonPath("_links.self.href", `is`("http://localhost/tasks")))
+            .andExpect(jsonPath("_embedded.taskList[0]._links.self.href",`is`("http://localhost/tasks/${tasks[0].id}")))
+            .andExpect(jsonPath("_embedded.taskList[0]._links.tasks.href",`is`("http://localhost/tasks")))
+    }
+
 }

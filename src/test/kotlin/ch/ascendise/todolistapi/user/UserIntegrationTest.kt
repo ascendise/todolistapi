@@ -1,6 +1,5 @@
 package ch.ascendise.todolistapi.user
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -96,7 +95,6 @@ class UserIntegrationTest() {
 
     @Test
     fun `Deleting user does not have a response body`() {
-        val users = userRepository.findAll()
         val user = User(email = "email", username = "name")
         userRepository.save(user)
         val oidcUser = createOidcUser(user)
