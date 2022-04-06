@@ -1,4 +1,4 @@
 package ch.ascendise.todolistapi.task
 
-class InvalidTaskException : RuntimeException() {
+class InvalidTaskException(message: String) : RuntimeException(message) {
 }

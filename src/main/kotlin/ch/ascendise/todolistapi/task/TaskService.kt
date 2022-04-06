@@ -11,10 +11,10 @@ class TaskService(
 ) {
 
     fun put(task: Task): Task {
-        if (task.endDate?.isBefore(task.startDate) == true ||
-            task.startDate.isBefore(LocalDate.now())
-        ) {
-            throw InvalidTaskException()
+        if (task.endDate?.isBefore(task.startDate) == true) {
+            throw InvalidTaskException("The date in field 'endDate' must not be before 'startDate'")
+        } else if(task.startDate.isBefore(LocalDate.now())) {
+            throw InvalidTaskException("The date in field 'startDate' must not be before today")
         }
         return taskRepository.save(task)
     }

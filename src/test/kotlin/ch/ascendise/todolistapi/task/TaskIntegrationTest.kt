@@ -1,5 +1,6 @@
 package ch.ascendise.todolistapi.task
 
+import ch.ascendise.todolistapi.ApiError
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserRepository
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -22,6 +23,7 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -157,25 +159,50 @@ class TaskIntegrationTest {
 
     @Test
     fun `Return task on POST request`() {
-        val oidcUser = createOidcUser(user)
         val newTask = Task(
             name = "Clean bathroom",
             description = "Close attention to sink",
             startDate = LocalDate.now().plusDays(5),
             user = user)
-        val json = jackson.writeValueAsString(newTask)
-        val result = mockMvc.perform(
-            post("/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
-                .with(csrf())
-                .content(json)
-                .contentType("application/json")
-        )
+        val result = sendPOSTRequest(newTask)
             .andExpect(status().isCreated)
             .andReturn()
         val responseTask: Task = jackson.readValue(result.response.contentAsString)
         newTask.id = responseTask.id
         assertEquals(responseTask, newTask, "Returned task is not the one sent")
     }
+
+    private fun sendPOSTRequest(task: Task): ResultActions {
+        val oidcUser = createOidcUser(user)
+        val json = jackson.writeValueAsString(task)
+        return mockMvc.perform(
+            post("/tasks")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(json)
+                .contentType("application/json")
+        )
+    }
+
+    @Test
+    fun `Return error when creating invalid task`() {
+        val invalidTask = Task(
+            name = "",
+            startDate = LocalDate.now().minusDays(5),
+            user = user
+        )
+        val result = sendPOSTRequest(invalidTask)
+            .andExpect(status().isUnprocessableEntity)
+            .andReturn()
+        val response: ApiError = jackson.readValue(result.response.contentAsString)
+        val expectedResponse = ApiError(
+            statusCode = 422,
+            name = "Unprocessable Entity",
+            description = "The date in field 'startDate' must not be before today"
+        )
+        assertEquals(expectedResponse, response)
+
+    }
+
 
 }

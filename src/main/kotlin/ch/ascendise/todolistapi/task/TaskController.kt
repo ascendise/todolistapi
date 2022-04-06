@@ -1,18 +1,17 @@
 package ch.ascendise.todolistapi.task
 
+import ch.ascendise.todolistapi.ApiError
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
 import org.springframework.hateoas.CollectionModel
 import org.springframework.hateoas.EntityModel
 import org.springframework.hateoas.server.mvc.linkTo
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.util.stream.Collectors
+
 
 @RestController
 class TaskController(
@@ -44,4 +43,17 @@ class TaskController(
             .created(URI.create("/${responseBody.content?.id}"))
             .body(responseBody)
     }
+
+    @ResponseBody
+    @ExceptionHandler(InvalidTaskException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun employeeNotFoundHandler(ex: InvalidTaskException): ResponseEntity<ApiError> =
+        ResponseEntity
+            .unprocessableEntity()
+            .body(ApiError(
+                statusCode = 422,
+                name = "Unprocessable Entity",
+                description = ex.message ?: ""
+            )
+            )
 }
