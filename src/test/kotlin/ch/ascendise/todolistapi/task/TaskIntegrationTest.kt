@@ -198,7 +198,7 @@ class TaskIntegrationTest {
         val expectedResponse = ApiError(
             statusCode = 422,
             name = "Unprocessable Entity",
-            description = "The date in field 'startDate' must not be before today"
+            description = StartDateBeforeTodayTaskException().message
         )
         assertEquals(expectedResponse, response)
 
