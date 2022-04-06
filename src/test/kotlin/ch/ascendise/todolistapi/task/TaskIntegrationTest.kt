@@ -185,7 +185,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return error when creating invalid task`() {
+    fun `Return error when creating task with startDate before today`() {
         val invalidTask = Task(
             name = "",
             startDate = LocalDate.now().minusDays(5),
@@ -201,7 +201,27 @@ class TaskIntegrationTest {
             description = StartDateBeforeTodayTaskException().message
         )
         assertEquals(expectedResponse, response)
+    }
 
+    @Test
+    fun `Return error when creating task with endDate before startDate`() {
+        val invalidTask = Task(
+            name = "Break time",
+            description = "Let me finish this before I even started",
+            startDate = LocalDate.now().plusMonths(1),
+            endDate = LocalDate.now().plusDays(1),
+            user = user
+        )
+        val result = sendPOSTRequest(invalidTask)
+            .andExpect(status().isUnprocessableEntity)
+            .andReturn()
+        val response: ApiError = jackson.readValue(result.response.contentAsString)
+        val expectedResponse = ApiError(
+            statusCode = 422,
+            name = "Unprocessable Entity",
+            description = InvalidDateRangeTaskException().message
+        )
+        assertEquals(expectedResponse, response)
     }
 
 
