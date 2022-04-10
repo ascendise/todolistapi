@@ -29,7 +29,7 @@ class TaskServiceTest {
             user = User(username = "", email = "")
         )
         every { taskRepository.save(task) } returns task
-        taskService.put(task)
+        taskService.create(task)
         verify { taskRepository.save(task) }
     }
 
@@ -43,7 +43,7 @@ class TaskServiceTest {
             endDate = LocalDate.now(),
             user = User(username = "", email = "")
         )
-        assertThrows<InvalidTaskException> { taskService.put(task) }
+        assertThrows<InvalidTaskException> { taskService.create(task) }
     }
 
     @Test
@@ -56,7 +56,7 @@ class TaskServiceTest {
             user = User(username = "", email = "")
         )
         every { taskRepository.save(task) } returns task
-        taskService.put(task)
+        taskService.create(task)
         verify { taskRepository.save(task) }
     }
 
@@ -70,7 +70,7 @@ class TaskServiceTest {
             user = User(username = "", email = "")
         )
         every { taskRepository.save(task) } returns task
-        taskService.put(task)
+        taskService.create(task)
         verify { taskRepository.save(task) }
     }
 
@@ -84,7 +84,7 @@ class TaskServiceTest {
             user = User(username = "", email = "")
         )
         every { taskRepository.save(task) } returns task
-        taskService.put(task)
+        taskService.create(task)
         verify { taskRepository.save(task) }
     }
 
@@ -97,7 +97,7 @@ class TaskServiceTest {
             startDate = LocalDate.now().minusDays(1),
             user = User(username = "", email = "")
         )
-        assertThrows<InvalidTaskException> { taskService.put(task) }
+        assertThrows<InvalidTaskException> { taskService.create(task) }
     }
 
     @Test

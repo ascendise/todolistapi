@@ -37,11 +37,21 @@ class TaskController(
     fun createTask(@CurrentUser user: User, @RequestBody task: Task): ResponseEntity<EntityModel<Task>>
     {
         task.user = user
-        val responseBody = taskService.put(task)
+        val responseBody = taskService.create(task)
             .let { taskModelAssembler.toModel(it) }
         return ResponseEntity
             .created(URI.create("/${responseBody.content?.id}"))
             .body(responseBody)
+    }
+
+    @PutMapping("/tasks/{id}")
+    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody task: Task): ResponseEntity<Task>
+    {
+        task.user = user
+        taskService.update(task, id)
+        return ResponseEntity
+            .noContent()
+            .build()
     }
 
     @ResponseBody

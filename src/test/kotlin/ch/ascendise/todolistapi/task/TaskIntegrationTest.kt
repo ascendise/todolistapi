@@ -24,8 +24,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDate
 import javax.transaction.Transactional
@@ -62,8 +61,8 @@ class TaskIntegrationTest {
 
     @AfterEach
     fun tearDown() {
-        userRepository.deleteAll()
         taskRepository.deleteAll()
+        userRepository.deleteAll()
     }
 
     @Test
@@ -222,6 +221,29 @@ class TaskIntegrationTest {
             description = InvalidDateRangeTaskException().message
         )
         assertEquals(expectedResponse, response)
+    }
+
+    @Test
+    fun `Change resource via PUT`() {
+        val oldTask = taskRepository.findAll().first();
+        val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user);
+        sendPUTRequest(newTask, oldTask.id)
+            .andExpect(status().isNoContent)
+            .andExpect(content().string(""))
+        val actualTask = taskRepository.findById(oldTask.id).get();
+        assertEquals(actualTask, newTask);
+    }
+
+    private fun sendPUTRequest(task: Task, id: Long): ResultActions {
+        val oidcUser = createOidcUser(user)
+        val json = jackson.writeValueAsString(task)
+        return mockMvc.perform(
+            put("/tasks/$id")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(json)
+                .contentType("application/json")
+        )
     }
 
 
