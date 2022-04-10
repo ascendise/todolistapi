@@ -56,6 +56,15 @@ class TaskController(
             .body(responseBody)
     }
 
+    @DeleteMapping("/tasks/{id}")
+    fun deleteTask(@CurrentUser user: User, @PathVariable id: Long): ResponseEntity<Task>
+    {
+        taskService.delete(taskId = id)
+        return ResponseEntity
+            .noContent()
+            .build()
+    }
+
     @ResponseBody
     @ExceptionHandler(InvalidTaskException::class)
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)

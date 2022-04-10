@@ -10,8 +10,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -260,5 +259,19 @@ class TaskIntegrationTest {
         val newTask = Task(id = 50000, name = "Do something else", description = "Some description", user = user);
         sendPUTRequest(newTask, 50000)
             .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `Delete task`() {
+        val task = tasks.elementAt(0)
+        val oidcUser = createOidcUser(user)
+        mockMvc.perform(
+            delete("/tasks/${task.id}")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+        )
+            .andExpect(status().isNoContent)
+            .andExpect(content().string(""))
+        assertFalse(taskRepository.existsById(task.id))
     }
 }
