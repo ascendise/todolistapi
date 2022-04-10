@@ -149,7 +149,7 @@ class TaskIntegrationTest {
                 .with(oidcLogin().oidcUser(oidcUser))
                 .with(csrf())
                 .content(json)
-                .contentType("application/json")
+                .contentType("application/hal+json")
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("_links.self.href",`is`("http://localhost/tasks/${expectedId}")))
@@ -228,8 +228,7 @@ class TaskIntegrationTest {
         val oldTask = taskRepository.findAll().first();
         val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user);
         sendPUTRequest(newTask, oldTask.id)
-            .andExpect(status().isNoContent)
-            .andExpect(content().string(""))
+            .andExpect(status().isOk)
         val actualTask = taskRepository.findById(oldTask.id).get();
         assertEquals(actualTask, newTask);
     }
@@ -244,6 +243,16 @@ class TaskIntegrationTest {
                 .content(json)
                 .contentType("application/json")
         )
+    }
+
+    @Test
+    fun `Return PUT request in HAL format`() {
+        val oldTask = taskRepository.findAll().first();
+        val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user);
+        sendPUTRequest(newTask, oldTask.id)
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("_links.self.href",`is`("http://localhost/tasks/${oldTask.id}")))
+            .andExpect(jsonPath("_links.tasks.href",`is`("http://localhost/tasks")))
     }
 
 

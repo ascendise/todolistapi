@@ -23,14 +23,14 @@ class TaskService(
         }
     }
 
-    fun update(task: Task, id: Long) {
+    fun update(task: Task, id: Long): Task {
         validate(task)
         val oldTask = taskRepository.findById(id).get()
         oldTask.name = task.name
         oldTask.description = task.description
         oldTask.startDate = task.startDate
         oldTask.endDate = task.endDate
-        taskRepository.save(oldTask)
+        return taskRepository.save(oldTask)
     }
 
     fun getAll(userId: Long): Set<Task> = taskRepository.findAllByUserId(userId).toSet()

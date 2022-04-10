@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
 import java.util.stream.Collectors
+import javax.swing.text.html.parser.Entity
 
 
 @RestController
@@ -45,13 +46,14 @@ class TaskController(
     }
 
     @PutMapping("/tasks/{id}")
-    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody task: Task): ResponseEntity<Task>
+    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody task: Task): ResponseEntity<EntityModel<Task>>
     {
         task.user = user
-        taskService.update(task, id)
+        val responseBody = taskService.update(task, id)
+            .let {taskModelAssembler.toModel(it)}
         return ResponseEntity
-            .noContent()
-            .build()
+            .ok()
+            .body(responseBody)
     }
 
     @ResponseBody
