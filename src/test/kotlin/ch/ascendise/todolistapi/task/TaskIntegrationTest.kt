@@ -252,7 +252,6 @@ class TaskIntegrationTest {
     fun `Return PUT request in HAL format`() {
         val oldTask = taskRepository.findAll().first();
         val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user);
-        val tasks = taskRepository.findAll()
         sendPUTRequest(newTask, oldTask.id)
             .andExpect(status().isOk)
             .andExpect(jsonPath("_links.self.href",`is`("http://localhost/tasks/${oldTask.id}")))
@@ -300,7 +299,7 @@ class TaskIntegrationTest {
         val newTask = Task(name = "pwned", description = "This is my task now", user = otherUser)
         mockMvc.perform(
             put("/tasks/${task.id}")
-                .content(jackson.writeValueAsString(task))
+                .content(jackson.writeValueAsString(newTask))
                 .contentType("application/json")
                 .with(oidcLogin().oidcUser(oidcUser))
                 .with(csrf())

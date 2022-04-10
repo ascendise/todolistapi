@@ -13,7 +13,6 @@ class OAuth2UserService(val userRepository: UserRepository) : OidcUserService() 
         val user = convertOidcUser(oidcUser)
         if(!userRepository.existsByEmail(user.email))
         {
-            println("Created user")
             userRepository.save(user)
         }
         return oidcUser
