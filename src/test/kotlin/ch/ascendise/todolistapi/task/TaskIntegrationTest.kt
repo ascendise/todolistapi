@@ -45,6 +45,7 @@ class TaskIntegrationTest {
     private lateinit var jackson: ObjectMapper
 
     private val user = User(username = "Reanu Keeves", email = "mail@domain.com")
+    private val otherUser = User(username = "AidenPierce", email = "Hackzr@yahoo.com")
     private val tasks = setOf(Task(name = "Buy bread", description = "Wholegrain", user = user),
         Task(name = "Do Taxes", startDate = LocalDate.now(), endDate = LocalDate.now().plusDays(30), user = user)
     )
@@ -52,6 +53,7 @@ class TaskIntegrationTest {
     @BeforeEach
     fun setUp() {
         userRepository.save(user)
+        userRepository.save(otherUser)
         taskRepository.saveAll(tasks)
         jackson = jacksonObjectMapper()
             .registerModule(JavaTimeModule())
@@ -273,5 +275,18 @@ class TaskIntegrationTest {
             .andExpect(status().isNoContent)
             .andExpect(content().string(""))
         assertFalse(taskRepository.existsById(task.id))
+    }
+
+    @Test
+    fun `Return 404 when trying to get task from other user`()
+    {
+        val oidcUser = createOidcUser(otherUser)
+        val task = tasks.elementAt(0)
+        mockMvc.perform(
+            get("/tasks/${task.id}")
+                .with(oidcLogin().oidcUser(oidcUser))
+            )
+            .andExpect(status().isNotFound)
+            .andExpect(content().string(""))
     }
 }

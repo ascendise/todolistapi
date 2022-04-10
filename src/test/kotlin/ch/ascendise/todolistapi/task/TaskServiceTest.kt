@@ -125,7 +125,7 @@ class TaskServiceTest {
     @Test
     fun `Return specific task`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
-        every { taskRepository.findByIdAndUserId(1, 1)} returns Task(name = "Dummy", user = user)
+        every { taskRepository.findByIdAndUserId(1, 1)} returns Optional.of(Task(name = "Dummy", user = user))
         taskService.getById(user, 1)
         verify { taskRepository.findByIdAndUserId(1, 1)}
     }
@@ -133,7 +133,7 @@ class TaskServiceTest {
     @Test
     fun `Throw exception when task is not found`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
-        every { taskRepository.findByIdAndUserId(101, 1) } returns null
+        every { taskRepository.findByIdAndUserId(101, 1) } returns Optional.empty()
         assertThrows<NotFoundException> { taskService.getById(user, 101) }
     }
 
