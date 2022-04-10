@@ -23,9 +23,9 @@ class TaskService(
         }
     }
 
-    fun update(task: Task, id: Long): Task {
+    fun update(task: Task, taskId: Long, userId: Long): Task {
         validate(task)
-        val oldTask = taskRepository.findById(id).orElseThrow { TaskNotFoundException()}
+        val oldTask = taskRepository.findByIdAndUserId(taskId, userId).orElseThrow { TaskNotFoundException()}
         oldTask.name = task.name
         oldTask.description = task.description
         oldTask.startDate = task.startDate

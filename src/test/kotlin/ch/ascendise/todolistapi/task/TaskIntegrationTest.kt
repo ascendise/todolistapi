@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.mockk.verify
 import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -250,6 +251,7 @@ class TaskIntegrationTest {
     fun `Return PUT request in HAL format`() {
         val oldTask = taskRepository.findAll().first();
         val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user);
+        val tasks = taskRepository.findAll()
         sendPUTRequest(newTask, oldTask.id)
             .andExpect(status().isOk)
             .andExpect(jsonPath("_links.self.href",`is`("http://localhost/tasks/${oldTask.id}")))
@@ -288,5 +290,23 @@ class TaskIntegrationTest {
             )
             .andExpect(status().isNotFound)
             .andExpect(content().string(""))
+    }
+
+    @Test
+    fun `Return 404 when trying to update a resource from another user`() {
+        val oidcUser = createOidcUser(otherUser)
+        val task = tasks.elementAt(0)
+        val newTask = Task(name = "pwned", description = "This is my task now", user = otherUser)
+        mockMvc.perform(
+            put("/tasks/${task.id}")
+                .content(jackson.writeValueAsString(task))
+                .contentType("application/json")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+        )
+            .andExpect(status().isNotFound)
+            .andExpect(content().string(""))
+        val actualTask = taskRepository.findById(task.id).get()
+        assertEquals(task, actualTask)
     }
 }

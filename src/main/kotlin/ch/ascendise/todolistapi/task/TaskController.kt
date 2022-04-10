@@ -49,7 +49,7 @@ class TaskController(
     fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody task: Task): ResponseEntity<EntityModel<Task>>
     {
         task.user = user
-        val responseBody = taskService.update(task, id)
+        val responseBody = taskService.update(task, id, user.id)
             .let {taskModelAssembler.toModel(it)}
         return ResponseEntity
             .ok()

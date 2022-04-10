@@ -134,25 +134,25 @@ class TaskServiceTest {
     fun `Throw exception when task is not found`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         every { taskRepository.findByIdAndUserId(101, 1) } returns Optional.empty()
-        assertThrows<NotFoundException> { taskService.getById(user, 101) }
+        assertThrows<TaskNotFoundException> { taskService.getById(user, 101) }
     }
 
     @Test
     fun `Update task`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         val task = Task(id = 1, name = "Updated Task", description = "This task has a new description", user = user)
-        every { taskRepository.findById(task.id) } returns Optional.of(Task(id = 1, name = "Old task", description = "This task is old", user = user))
+        every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(Task(id = 1, name = "Old task", description = "This task is old", user = user))
         every {taskRepository.save(task)} returns task
-        taskService.update(task, 1)
+        taskService.update(task, task.id, user.id)
         verify {taskRepository.save(task)}
-        verify { taskRepository.findById(task.id) }
+        verify { taskRepository.findByIdAndUserId(task.id, user.id) }
     }
 
     @Test
     fun `Throw TaskNotFoundException if task was not found`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         val task = Task(id = 1, name = "Updated Task", description = "This task has a new description", user = user)
-        every { taskRepository.findById(task.id) } returns Optional.empty()
-        assertThrows<TaskNotFoundException> { taskService.update(task, task.id) }
+        every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.empty()
+        assertThrows<TaskNotFoundException> { taskService.update(task, task.id, user.id) }
     }
 }
