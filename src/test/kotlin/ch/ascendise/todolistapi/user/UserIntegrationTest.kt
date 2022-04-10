@@ -1,6 +1,5 @@
 package ch.ascendise.todolistapi.user
 
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -59,7 +58,7 @@ class UserIntegrationTest() {
 
     @Test
     fun `Show info of current user`() {
-        val expectedUser = User(1, "maxmuster@mail.com", "Max Muster")
+        val expectedUser = User(email = "maxmuster@mail.com", username = "Max Muster")
         userRepository.save(expectedUser)
         val oidcUser = createOidcUser(expectedUser)
         val result = mockMvc.perform(
@@ -83,7 +82,7 @@ class UserIntegrationTest() {
 
     @Test
     fun `Delete user`() {
-        val user = User(1, "email", "name")
+        val user = User(email=  "email", username = "name")
         userRepository.save(user)
         val oidcUser = createOidcUser(user)
         mockMvc.perform(
@@ -91,12 +90,12 @@ class UserIntegrationTest() {
                 .with(csrf())
         )
             .andExpect(status().is2xxSuccessful)
-        assertTrue(userRepository.findAll().size == 0, "User was not deleted")
+        assertEquals(0, userRepository.findAll().size, "User was not deleted")
     }
 
     @Test
     fun `Deleting user does not have a response body`() {
-        val user = User(1, "email", "name")
+        val user = User(email = "email", username = "name")
         userRepository.save(user)
         val oidcUser = createOidcUser(user)
         val result = mockMvc.perform(
@@ -110,7 +109,7 @@ class UserIntegrationTest() {
 
     @Test
     fun `Show available operations for user`() {
-        val expectedUser = User(1, "maxmuster@mail.com", "Max Muster")
+        val expectedUser = User(email = "maxmuster@mail.com", username = "Max Muster")
         userRepository.save(expectedUser)
         val oidcUser = createOidcUser(expectedUser)
         mockMvc.perform(

@@ -1,6 +1,5 @@
 package ch.ascendise.todolistapi.user
 
-import org.springframework.data.domain.Example
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
@@ -14,7 +13,6 @@ class OAuth2UserService(val userRepository: UserRepository) : OidcUserService() 
         val user = convertOidcUser(oidcUser)
         if(!userRepository.existsByEmail(user.email))
         {
-            println("Created user")
             userRepository.save(user)
         }
         return oidcUser
@@ -22,7 +20,6 @@ class OAuth2UserService(val userRepository: UserRepository) : OidcUserService() 
 
     private fun convertOidcUser(oidcUser: OidcUser): User {
         return User(
-            id = 0,
             email = oidcUser.attributes["email"] as String,
             username = oidcUser.attributes["given_name"] as String
         )
