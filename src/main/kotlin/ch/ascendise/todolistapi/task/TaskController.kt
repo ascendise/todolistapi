@@ -58,8 +58,8 @@ class TaskController(
 
     @ResponseBody
     @ExceptionHandler(InvalidTaskException::class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun employeeNotFoundHandler(ex: InvalidTaskException): ResponseEntity<ApiError> =
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    fun invalidTaskHandler(ex: InvalidTaskException): ResponseEntity<ApiError> =
         ResponseEntity
             .unprocessableEntity()
             .body(ApiError(
@@ -68,4 +68,12 @@ class TaskController(
                 description = ex.message ?: ""
             )
             )
+
+    @ResponseBody
+    @ExceptionHandler(TaskNotFoundException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun taskNotFoundException(ex: TaskNotFoundException): ResponseEntity<ApiError> =
+        ResponseEntity
+            .notFound()
+            .build()
 }

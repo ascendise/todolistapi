@@ -255,5 +255,10 @@ class TaskIntegrationTest {
             .andExpect(jsonPath("_links.tasks.href",`is`("http://localhost/tasks")))
     }
 
-
+    @Test
+    fun `PUT request to nonexisting resource returns 404`() {
+        val newTask = Task(id = 50000, name = "Do something else", description = "Some description", user = user);
+        sendPUTRequest(newTask, 50000)
+            .andExpect(status().isNotFound)
+    }
 }
