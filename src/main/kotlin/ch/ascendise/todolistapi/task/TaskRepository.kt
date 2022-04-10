@@ -7,4 +7,5 @@ interface TaskRepository : JpaRepository<Task, Long>
 {
     fun findAllByUserId(id: Long): List<Task>
     fun findByIdAndUserId(id: Long, userId: Long): Optional<Task>
+    fun deleteByIdAndUserId(id: Long, userId: Long)
 }

@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
@@ -308,5 +309,19 @@ class TaskIntegrationTest {
             .andExpect(content().string(""))
         val actualTask = taskRepository.findById(task.id).get()
         assertEquals(task, actualTask)
+    }
+
+    @Test
+    fun `Return 204 when trying to delete a resource from another user but don't actually delete it`() {
+        val oidcUser = createOidcUser(otherUser)
+        val task = tasks.elementAt(0)
+        mockMvc.perform(
+            delete("/tasks/${task.id}")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+        )
+            .andExpect(status().isNoContent)
+            .andExpect(content().string(""))
+        assertTrue(taskRepository.existsById(task.id))
     }
 }

@@ -117,9 +117,9 @@ class TaskServiceTest {
     @Test
     fun `Delete task`()
     {
-        justRun { taskRepository.deleteById(1) }
-        taskService.delete(1)
-        verify { taskRepository.deleteById(1)}
+        justRun { taskRepository.deleteByIdAndUserId(1, 1) }
+        taskService.delete(1, 1)
+        verify { taskRepository.deleteByIdAndUserId(1, 1)}
     }
 
     @Test

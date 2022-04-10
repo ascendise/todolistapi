@@ -59,7 +59,7 @@ class TaskController(
     @DeleteMapping("/tasks/{id}")
     fun deleteTask(@CurrentUser user: User, @PathVariable id: Long): ResponseEntity<Task>
     {
-        taskService.delete(taskId = id)
+        taskService.delete(taskId = id, userId = user.id)
         return ResponseEntity
             .noContent()
             .build()
