@@ -227,6 +227,30 @@ class TaskIntegrationTest {
     }
 
     @Test
+    fun `Only have to set important stuff in POST`() {
+        val oidcUser = createOidcUser(user)
+        val taskJson = "{\n" +
+                "    \"id\": 0,\n" +
+                "    \"name\": \"Clean bathroom\",\n" +
+                "    \"description\": \"Close attention to sink\",\n" +
+                "    \"startDate\": [\n" +
+                "        2040,\n" +
+                "        4,\n" +
+                "        16\n" +
+                "    ],\n" +
+                "    \"endDate\": null\n" +
+                "}"
+        mockMvc.perform(
+            post("/tasks")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(taskJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isCreated)
+    }
+
+    @Test
     fun `Change resource via PUT`() {
         val oldTask = taskRepository.findAll().first();
         val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user);
@@ -263,6 +287,31 @@ class TaskIntegrationTest {
         val newTask = Task(id = 50000, name = "Do something else", description = "Some description", user = user);
         sendPUTRequest(newTask, 50000)
             .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `Only have to set important stuff in PUT`() {
+        val oidcUser = createOidcUser(user)
+        val taskJson = "{\n" +
+                "    \"id\": 0,\n" +
+                "    \"name\": \"Clean bathroom\",\n" +
+                "    \"description\": \"Close attention to sink\",\n" +
+                "    \"startDate\": [\n" +
+                "        2040,\n" +
+                "        4,\n" +
+                "        16\n" +
+                "    ],\n" +
+                "    \"endDate\": null\n" +
+                "}"
+        val oldTask = taskRepository.findAll().first()
+        mockMvc.perform(
+            put("/tasks/${oldTask.id}")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(taskJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isOk)
     }
 
     @Test

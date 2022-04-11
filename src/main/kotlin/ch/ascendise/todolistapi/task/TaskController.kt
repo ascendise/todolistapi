@@ -35,9 +35,9 @@ class TaskController(
             .let { taskModelAssembler.toModel(it) }
 
     @PostMapping("/tasks")
-    fun createTask(@CurrentUser user: User, @RequestBody task: Task): ResponseEntity<EntityModel<Task>>
+    fun createTask(@CurrentUser user: User, @RequestBody taskDto: TaskDto): ResponseEntity<EntityModel<Task>>
     {
-        task.user = user
+        val task = taskDto.toTask(user)
         val responseBody = taskService.create(task)
             .let { taskModelAssembler.toModel(it) }
         return ResponseEntity
@@ -46,9 +46,9 @@ class TaskController(
     }
 
     @PutMapping("/tasks/{id}")
-    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody task: Task): ResponseEntity<EntityModel<Task>>
+    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody taskDto: TaskDto): ResponseEntity<EntityModel<Task>>
     {
-        task.user = user
+        val task = taskDto.toTask(user)
         val responseBody = taskService.update(task, id, user.id)
             .let {taskModelAssembler.toModel(it)}
         return ResponseEntity
