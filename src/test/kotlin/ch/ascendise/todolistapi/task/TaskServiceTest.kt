@@ -143,7 +143,7 @@ class TaskServiceTest {
         val task = Task(id = 1, name = "Updated Task", description = "This task has a new description", user = user)
         every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(Task(id = 1, name = "Old task", description = "This task is old", user = user))
         every {taskRepository.save(task)} returns task
-        taskService.update(task, task.id, user.id)
+        taskService.update(task)
         verify {taskRepository.save(task)}
         verify { taskRepository.findByIdAndUserId(task.id, user.id) }
     }
@@ -153,6 +153,6 @@ class TaskServiceTest {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         val task = Task(id = 1, name = "Updated Task", description = "This task has a new description", user = user)
         every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.empty()
-        assertThrows<TaskNotFoundException> { taskService.update(task, task.id, user.id) }
+        assertThrows<TaskNotFoundException> { taskService.update(task) }
     }
 }
