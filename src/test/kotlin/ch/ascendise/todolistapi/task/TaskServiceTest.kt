@@ -126,7 +126,7 @@ class TaskServiceTest {
     fun `Return specific task`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         every { taskRepository.findByIdAndUserId(1, 1)} returns Optional.of(Task(name = "Dummy", user = user))
-        taskService.getById(user, 1)
+        taskService.getById(user.id, 1)
         verify { taskRepository.findByIdAndUserId(1, 1)}
     }
 
@@ -134,7 +134,7 @@ class TaskServiceTest {
     fun `Throw exception when task is not found`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         every { taskRepository.findByIdAndUserId(101, 1) } returns Optional.empty()
-        assertThrows<TaskNotFoundException> { taskService.getById(user, 101) }
+        assertThrows<TaskNotFoundException> { taskService.getById(user.id, 101) }
     }
 
     @Test

@@ -34,8 +34,8 @@ class TaskService(
 
     fun getAll(userId: Long): Set<Task> = taskRepository.findAllByUserId(userId).toSet()
     fun delete(userId: Long, taskId: Long) = taskRepository.deleteByIdAndUserId(taskId, userId)
-    fun getById(user: User, taskId: Long): Task =
-        taskRepository.findByIdAndUserId(taskId, user.id).orElseThrow { TaskNotFoundException() }
+    fun getById(userId: Long, taskId: Long): Task =
+        taskRepository.findByIdAndUserId(taskId, userId).orElseThrow { TaskNotFoundException() }
 
 
 }

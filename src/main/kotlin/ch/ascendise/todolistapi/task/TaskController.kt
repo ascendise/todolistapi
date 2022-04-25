@@ -30,7 +30,7 @@ class TaskController(
 
     @GetMapping("/tasks/{id}")
     fun getTask(@CurrentUser user: User, @PathVariable id: Long): EntityModel<Task> =
-        taskService.getById(user, id)
+        taskService.getById(user.id, id)
             .let { taskModelAssembler.toModel(it) }
 
     @PostMapping("/tasks")
