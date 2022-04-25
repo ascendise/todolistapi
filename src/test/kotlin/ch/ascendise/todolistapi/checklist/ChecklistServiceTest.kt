@@ -29,4 +29,12 @@ class ChecklistServiceTest {
         verify { checklistRepository.findAllByUserId(user.id) }
         assertEquals(expectedChecklists, checklists)
     }
+
+    @Test
+    fun `Fetching checklists can return empty list`() {
+        every { checklistRepository.findAllByUserId(user.id) } returns emptyList()
+        val checklists = checklistService.getChecklists(user.id)
+        verify { checklistRepository.findAllByUserId(user.id) }
+        assertEquals(emptyList<Checklist>(), checklists)
+    }
 }
