@@ -28,6 +28,14 @@ class ChecklistController(
     fun getChecklist(@PathVariable id: Long, @CurrentUser user: User) =
         service.getChecklist(id, user.id)
 
+    @PutMapping("/checklists/{id}")
+    fun update(@PathVariable id: Long, @CurrentUser user: User, @RequestBody dto: ChecklistDto): ResponseEntity<Checklist> {
+        val checklist = dto.toChecklist(user)
+        checklist.id = id;
+        val newChecklist = service.update(checklist, user.id)
+        return ResponseEntity.ok(newChecklist)
+    }
+
     @ResponseBody
     @ExceptionHandler(ChecklistNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)

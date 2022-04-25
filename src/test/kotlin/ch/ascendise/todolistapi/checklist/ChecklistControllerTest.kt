@@ -20,8 +20,7 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
@@ -117,13 +116,13 @@ class ChecklistControllerTest {
     @Test
     fun `Create new checklist`() {
         val expectedChecklist = Checklist(id = 1, name = "ReadList", user = user)
-        val json = "{\"name\":\"ReadList\"}"
+        val checklistJson = "{\"name\":\"ReadList\"}"
         every { checklistService.create( match { it.name == "ReadList" } ) } returns expectedChecklist
         val result = mockMvc.perform(
             post("/checklists")
                 .with(oidcLogin().oidcUser(oidcUser))
                 .with(csrf())
-                .content(json)
+                .content(checklistJson)
                 .contentType("application/json")
         )
             .andExpect(status().isCreated)
@@ -131,5 +130,26 @@ class ChecklistControllerTest {
         verify { checklistService.create(any()) }
         val checklist: Checklist = jackson.readValue(result.response.contentAsString)
         assertEquals(expectedChecklist, checklist)
+    }
+
+    @Test
+    fun `Update existing checklist`() {
+        val checklistJson = "{\"name\":\"DescriptiveNameForCollectionOfTasks\"}"
+        val updatedChecklist = Checklist(id = 1, name = "DescriptiveNameForCollectionOfTasks", user = user)
+        every {
+            checklistService.update(match { it.name == "DescriptiveNameForCollectionOfTasks" }, user.id)
+        } returns updatedChecklist
+        val result = mockMvc.perform(
+            put("/checklists/1")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(checklistJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+        verify { checklistService.update(any(), any()) }
+        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
+        assertEquals(updatedChecklist, checklist)
     }
 }
