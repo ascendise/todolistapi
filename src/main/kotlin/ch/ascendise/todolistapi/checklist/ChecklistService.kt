@@ -21,4 +21,7 @@ class ChecklistService(
         oldChecklist.name = checklist.name
         return checklistRepository.save(oldChecklist)
     }
+
+    fun delete(checklistId: Long, userId: Long) =
+        checklistRepository.deleteByIdAndUserId(checklistId, userId)
 }

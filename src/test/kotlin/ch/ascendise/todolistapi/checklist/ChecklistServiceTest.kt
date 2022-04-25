@@ -4,6 +4,7 @@ import ch.ascendise.todolistapi.user.User
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.justRun
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -85,6 +86,14 @@ class ChecklistServiceTest {
         every { checklistRepository.findByIdAndUserId(checklist.id, user.id) } returns Optional.empty()
         assertThrows<ChecklistNotFoundException> { checklistService.update(checklist, user.id) }
         verify { checklistRepository.findByIdAndUserId(checklist.id, user.id) }
+    }
+
+    @Test
+    fun `Delete checklist`() {
+        val checklistId = 1L
+        justRun { checklistRepository.deleteByIdAndUserId(checklistId, user.id) }
+        checklistService.delete(checklistId, user.id)
+        verify { checklistRepository.deleteByIdAndUserId(checklistId, user.id) }
     }
 }
 
