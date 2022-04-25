@@ -157,7 +157,7 @@ class ChecklistControllerTest {
     fun `Return 404 when trying to update nonexisting checklist`() {
         val checklistJson = "{\"name\":\"SomeChecklistName\"}"
         every { checklistService.update(any()) } throws ChecklistNotFoundException()
-        val result = mockMvc.perform(
+        mockMvc.perform(
             put("/checklists/-1")
                 .with(oidcLogin().oidcUser(oidcUser))
                 .with(csrf())

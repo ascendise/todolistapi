@@ -3,7 +3,6 @@ package ch.ascendise.todolistapi.checklist
 import ch.ascendise.todolistapi.user.User
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.justRun
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.util.*
-import kotlin.math.exp
 
 @SpringBootTest
 class ChecklistServiceTest {

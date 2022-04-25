@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.mockk.verify
 import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
@@ -252,12 +250,12 @@ class TaskIntegrationTest {
 
     @Test
     fun `Change resource via PUT`() {
-        val oldTask = taskRepository.findAll().first();
-        val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user);
+        val oldTask = taskRepository.findAll().first()
+        val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user)
         sendPUTRequest(newTask, oldTask.id)
             .andExpect(status().isOk)
-        val actualTask = taskRepository.findById(oldTask.id).get();
-        assertEquals(actualTask, newTask);
+        val actualTask = taskRepository.findById(oldTask.id).get()
+        assertEquals(actualTask, newTask)
     }
 
     private fun sendPUTRequest(task: Task, id: Long): ResultActions {
@@ -274,8 +272,8 @@ class TaskIntegrationTest {
 
     @Test
     fun `Return PUT request in HAL format`() {
-        val oldTask = taskRepository.findAll().first();
-        val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user);
+        val oldTask = taskRepository.findAll().first()
+        val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user)
         sendPUTRequest(newTask, oldTask.id)
             .andExpect(status().isOk)
             .andExpect(jsonPath("_links.self.href",`is`("http://localhost/tasks/${oldTask.id}")))
@@ -284,7 +282,7 @@ class TaskIntegrationTest {
 
     @Test
     fun `PUT request to nonexisting resource returns 404`() {
-        val newTask = Task(id = 50000, name = "Do something else", description = "Some description", user = user);
+        val newTask = Task(id = 50000, name = "Do something else", description = "Some description", user = user)
         sendPUTRequest(newTask, 50000)
             .andExpect(status().isNotFound)
     }

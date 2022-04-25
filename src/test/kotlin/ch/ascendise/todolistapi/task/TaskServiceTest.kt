@@ -2,15 +2,15 @@ package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.user.User
 import com.ninjasquad.springmockk.MockkBean
-import io.mockk.*
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import java.time.LocalDate
-import java.util.Optional
-import javax.swing.text.html.Option
+import java.util.*
 
 @SpringBootTest
 class TaskServiceTest {
