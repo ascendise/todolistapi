@@ -74,7 +74,7 @@ class ChecklistServiceTest {
         val oldChecklist = Checklist(id = 1, name = "New Checklist", user = user)
         every { checklistRepository.findByIdAndUserId(checklist.id, user.id) } returns Optional.of(oldChecklist)
         every { checklistRepository.save(oldChecklist) } returns checklist
-        val newChecklist = checklistService.update(checklist, user.id)
+        val newChecklist = checklistService.update(checklist)
         verify { checklistRepository.findByIdAndUserId(checklist.id, user.id) }
         verify { checklistRepository.save(oldChecklist) }
         assertEquals(checklist, newChecklist)
@@ -84,7 +84,7 @@ class ChecklistServiceTest {
     fun `Updating nonexistent checklist throws ChecklistNotFoundException`() {
         val checklist = Checklist(id = -1L, name = "Shopping List", user = user)
         every { checklistRepository.findByIdAndUserId(checklist.id, user.id) } returns Optional.empty()
-        assertThrows<ChecklistNotFoundException> { checklistService.update(checklist, user.id) }
+        assertThrows<ChecklistNotFoundException> { checklistService.update(checklist) }
         verify { checklistRepository.findByIdAndUserId(checklist.id, user.id) }
     }
 

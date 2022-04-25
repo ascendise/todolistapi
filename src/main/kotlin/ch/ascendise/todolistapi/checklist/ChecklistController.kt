@@ -31,8 +31,8 @@ class ChecklistController(
     @PutMapping("/checklists/{id}")
     fun update(@PathVariable id: Long, @CurrentUser user: User, @RequestBody dto: ChecklistDto): ResponseEntity<Checklist> {
         val checklist = dto.toChecklist(user)
-        checklist.id = id;
-        val newChecklist = service.update(checklist, user.id)
+        checklist.id = id
+        val newChecklist = service.update(checklist)
         return ResponseEntity.ok(newChecklist)
     }
 

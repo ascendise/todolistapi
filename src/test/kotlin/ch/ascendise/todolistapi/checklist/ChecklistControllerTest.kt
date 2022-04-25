@@ -104,7 +104,7 @@ class ChecklistControllerTest {
     fun `Return 404 if checklist was not found`() {
         val id = -1L
         every { checklistService.getChecklist(id, user.id) } throws ChecklistNotFoundException()
-        val result = mockMvc.perform(
+        mockMvc.perform(
             get("/checklists/$id")
                 .with(oidcLogin().oidcUser(oidcUser))
         )
@@ -137,7 +137,7 @@ class ChecklistControllerTest {
         val checklistJson = "{\"name\":\"DescriptiveNameForCollectionOfTasks\"}"
         val updatedChecklist = Checklist(id = 1, name = "DescriptiveNameForCollectionOfTasks", user = user)
         every {
-            checklistService.update(match { it.name == "DescriptiveNameForCollectionOfTasks" }, user.id)
+            checklistService.update(match { it.name == "DescriptiveNameForCollectionOfTasks" })
         } returns updatedChecklist
         val result = mockMvc.perform(
             put("/checklists/1")
@@ -148,7 +148,7 @@ class ChecklistControllerTest {
         )
             .andExpect(status().isOk)
             .andReturn()
-        verify { checklistService.update(any(), any()) }
+        verify { checklistService.update(any()) }
         val checklist: Checklist = jackson.readValue(result.response.contentAsString)
         assertEquals(updatedChecklist, checklist)
     }
