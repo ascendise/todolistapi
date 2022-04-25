@@ -66,6 +66,18 @@ class ChecklistServiceTest {
         verify { checklistRepository.save(newChecklist) }
         assertEquals(newChecklist, returnedChecklist)
     }
+
+    @Test
+    fun `Update existing checklist`() {
+        val checklist = Checklist(id = 1, name = "Shopping List", user = user)
+        val oldChecklist = Checklist(id = 1, name = "New Checklist", user = user)
+        every { checklistRepository.findByIdAndUserId(checklist.id, user.id) } returns Optional.of(oldChecklist)
+        every { checklistRepository.save(oldChecklist) } returns checklist
+        val newChecklist = checklistService.update(checklist, user.id)
+        verify { checklistRepository.findByIdAndUserId(checklist.id, user.id) }
+        verify { checklistRepository.save(oldChecklist) }
+        assertEquals(checklist, newChecklist)
+    }
 }
 
 
