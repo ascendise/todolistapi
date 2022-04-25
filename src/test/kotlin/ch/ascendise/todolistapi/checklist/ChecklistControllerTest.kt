@@ -17,9 +17,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
@@ -110,5 +112,24 @@ class ChecklistControllerTest {
             .andExpect(status().isNotFound)
             .andReturn()
         verify { checklistService.getChecklist(id, user.id) }
+    }
+
+    @Test
+    fun `Create new checklist`() {
+        val expectedChecklist = Checklist(id = 1, name = "ReadList", user = user)
+        val json = "{\"name\":\"ReadList\"}"
+        every { checklistService.create( match { it.name == "ReadList" } ) } returns expectedChecklist
+        val result = mockMvc.perform(
+            post("/checklists")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(json)
+                .contentType("application/json")
+        )
+            .andExpect(status().isCreated)
+            .andReturn()
+        verify { checklistService.create(any()) }
+        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
+        assertEquals(expectedChecklist, checklist)
     }
 }
