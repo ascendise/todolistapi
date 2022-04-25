@@ -12,4 +12,7 @@ class ChecklistService(
 
     fun getChecklist(id: Long, userId: Long) : Checklist =
         checklistRepository.findByIdAndUserId(id, userId).orElseThrow { ChecklistNotFoundException() }
+
+    fun create(checklist: Checklist) : Checklist =
+        checklistRepository.save(checklist)
 }

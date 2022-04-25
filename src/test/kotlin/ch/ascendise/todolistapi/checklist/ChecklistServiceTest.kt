@@ -57,4 +57,39 @@ class ChecklistServiceTest {
         assertThrows<ChecklistNotFoundException> { checklistService.getChecklist(id, user.id) }
         verify { checklistRepository.findByIdAndUserId(id, user.id) }
     }
+
+    @Test
+    fun `Create new checklist`() {
+        val newChecklist = Checklist(name = "New Checklist2", user = user)
+        every { checklistRepository.save(newChecklist) } returns newChecklist
+        val returnedChecklist = checklistService.create(newChecklist)
+        verify { checklistRepository.save(newChecklist) }
+        assertEquals(newChecklist, returnedChecklist)
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
