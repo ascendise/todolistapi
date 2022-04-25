@@ -69,4 +69,19 @@ class ChecklistControllerTest {
         val checklists: List<Checklist> = jackson.readValue(result.response.contentAsString)
         assertEquals(expectedChecklists, checklists)
     }
+
+    @Test
+    fun `Fetch empty list of checklists`() {
+        every { checklistService.getChecklists(user.id) } returns emptyList()
+        val result = mockMvc.perform(
+            get("/checklists")
+                .with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+        verify { checklistService.getChecklists(user.id) }
+        val checklists: List<Checklist> = jackson.readValue(result.response.contentAsString)
+        assertEquals(emptyList<Checklist>(), checklists)
+
+    }
 }
