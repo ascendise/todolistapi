@@ -82,6 +82,20 @@ class ChecklistControllerTest {
         verify { checklistService.getChecklists(user.id) }
         val checklists: List<Checklist> = jackson.readValue(result.response.contentAsString)
         assertEquals(emptyList<Checklist>(), checklists)
+    }
 
+    @Test
+    fun `Fetch single checklist`() {
+        val expectedChecklist = Checklist(id = 1, name = "New Checklist", user = user)
+        every { checklistService.getChecklist(expectedChecklist.id, user.id) } returns expectedChecklist
+        val result = mockMvc.perform(
+            get("/checklists/${expectedChecklist.id}")
+                .with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+        verify { checklistService.getChecklist(expectedChecklist.id, user.id) }
+        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
+        assertEquals(expectedChecklist, checklist)
     }
 }
