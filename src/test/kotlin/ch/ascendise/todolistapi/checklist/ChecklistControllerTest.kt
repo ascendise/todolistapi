@@ -152,4 +152,20 @@ class ChecklistControllerTest {
         val checklist: Checklist = jackson.readValue(result.response.contentAsString)
         assertEquals(updatedChecklist, checklist)
     }
+
+    @Test
+    fun `Return 404 when trying to update nonexisting checklist`() {
+        val checklistJson = "{\"name\":\"SomeChecklistName\"}"
+        every { checklistService.update(any()) } throws ChecklistNotFoundException()
+        val result = mockMvc.perform(
+            put("/checklists/-1")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(checklistJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isNotFound)
+            .andReturn()
+        verify { checklistService.update(any()) }
+    }
 }
