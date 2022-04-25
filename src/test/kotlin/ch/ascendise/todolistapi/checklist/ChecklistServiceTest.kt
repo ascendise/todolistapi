@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import kotlin.math.exp
 
 @SpringBootTest
 class ChecklistServiceTest {
@@ -31,10 +32,19 @@ class ChecklistServiceTest {
     }
 
     @Test
-    fun `Fetching checklists can return empty list`() {
+    fun `Fetching checklists may return empty list`() {
         every { checklistRepository.findAllByUserId(user.id) } returns emptyList()
         val checklists = checklistService.getChecklists(user.id)
         verify { checklistRepository.findAllByUserId(user.id) }
         assertEquals(emptyList<Checklist>(), checklists)
+    }
+
+    @Test
+    fun `Fetching single checklist`() {
+        val expected = Checklist(id = 1, name = "New Checklist1", user = user)
+        every { checklistRepository.findByIdAndUserId(expected.id, user.id) } returns expected
+        val checklist = checklistService.getChecklist(expected.id, user.id)
+        verify { checklistRepository.findByIdAndUserId(expected.id, user.id) }
+        assertEquals(expected, checklist)
     }
 }

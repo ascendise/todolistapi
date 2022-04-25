@@ -9,4 +9,7 @@ class ChecklistService(
 
     fun getChecklists(userId: Long) : List<Checklist> =
         checklistRepository.findAllByUserId(userId)
+
+    fun getChecklist(id: Long, userId: Long) : Checklist =
+        checklistRepository.findByIdAndUserId(id, userId)
 }
