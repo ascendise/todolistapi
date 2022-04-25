@@ -7,8 +7,10 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import java.util.*
 import kotlin.math.exp
 
 @SpringBootTest
@@ -42,9 +44,17 @@ class ChecklistServiceTest {
     @Test
     fun `Fetching single checklist`() {
         val expected = Checklist(id = 1, name = "New Checklist1", user = user)
-        every { checklistRepository.findByIdAndUserId(expected.id, user.id) } returns expected
+        every { checklistRepository.findByIdAndUserId(expected.id, user.id) } returns Optional.of(expected)
         val checklist = checklistService.getChecklist(expected.id, user.id)
         verify { checklistRepository.findByIdAndUserId(expected.id, user.id) }
         assertEquals(expected, checklist)
+    }
+
+    @Test
+    fun `Fetching nonexistent resource throws ChecklistNotFoundException`() {
+        val id = 1L
+        every { checklistRepository.findByIdAndUserId(id, user.id) } returns Optional.empty()
+        assertThrows<ChecklistNotFoundException> { checklistService.getChecklist(id, user.id) }
+        verify { checklistRepository.findByIdAndUserId(id, user.id) }
     }
 }

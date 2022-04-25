@@ -11,5 +11,5 @@ class ChecklistService(
         checklistRepository.findAllByUserId(userId)
 
     fun getChecklist(id: Long, userId: Long) : Checklist =
-        checklistRepository.findByIdAndUserId(id, userId)
+        checklistRepository.findByIdAndUserId(id, userId).orElseThrow { ChecklistNotFoundException() }
 }
