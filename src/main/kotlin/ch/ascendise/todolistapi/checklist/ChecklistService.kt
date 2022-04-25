@@ -19,6 +19,7 @@ class ChecklistService(
     fun update(checklist: Checklist) : Checklist {
         val oldChecklist = checklistRepository.findByIdAndUserId(checklist.id, checklist.user.id).orElseThrow {ChecklistNotFoundException()}
         oldChecklist.name = checklist.name
+        oldChecklist.tasks = checklist.tasks
         return checklistRepository.save(oldChecklist)
     }
 
