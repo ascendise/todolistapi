@@ -168,4 +168,18 @@ class ChecklistControllerTest {
             .andReturn()
         verify { checklistService.update(any()) }
     }
+
+    @Test
+    fun `Delete checklist`() {
+        val id = 1L
+        every { checklistService.delete(id, user.id) } returns Unit
+        mockMvc.perform(
+            delete("/checklists/$id")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+        )
+            .andExpect(status().isNoContent)
+            .andReturn()
+        verify { checklistService.delete(id, user.id) }
+    }
 }

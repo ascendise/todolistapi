@@ -36,6 +36,12 @@ class ChecklistController(
         return ResponseEntity.ok(newChecklist)
     }
 
+    @DeleteMapping("/checklists/{id}")
+    fun delete(@PathVariable id: Long, @CurrentUser user: User): ResponseEntity<Any> {
+        service.delete(id, user.id)
+        return ResponseEntity.noContent().build()
+    }
+
     @ResponseBody
     @ExceptionHandler(ChecklistNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
