@@ -14,6 +14,10 @@ class ChecklistTaskService(
     fun addTask(checklistTask: ChecklistTask): Checklist{
         val task = taskService.getById(checklistTask.userId, checklistTask.taskId)
         val checklist = checklistService.getChecklist(checklistTask.checklistId, checklistTask.userId)
+        if(checklist.tasks.contains(task))
+        {
+            return checklist
+        }
         checklist.tasks.add(task)
         return checklistService.update(checklist)
     }

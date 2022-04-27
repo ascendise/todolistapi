@@ -45,6 +45,21 @@ class ChecklistTaskServiceTest {
     }
 
     @Test
+    fun `Don't add task to checklist, if it already is in there`() {
+        val task = Task(id = 300, name = "Task", user = user)
+        val checklist = Checklist(id = 200, name = "Checklist1", user = user, tasks = mutableListOf(task))
+        every { taskService.getById(user.id, task.id) } returns task
+        every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
+        every { checklistService.update(any()) } returnsArgument 0
+        val checklistTask = ChecklistTask(checklist.id, task.id, user.id)
+        val updatedChecklist = service.addTask(checklistTask)
+        verify { taskService.getById(user.id, task.id) }
+        verify { checklistService.getChecklist(checklist.id, user.id) }
+        verify(exactly = 0) { checklistService.update(any()) }
+        assertTrue(updatedChecklist.tasks.size == 1)
+    }
+
+    @Test
     fun `Remove task from checklist`() {
         val task = Task(id = 300, name = "Task", user = user)
         val task2 = Task(id = 301, name = "Task2", user = user)
