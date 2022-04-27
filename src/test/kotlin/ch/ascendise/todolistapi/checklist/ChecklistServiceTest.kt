@@ -42,7 +42,7 @@ class ChecklistServiceTest {
 
     @Test
     fun `Fetching single checklist`() {
-        val expected = Checklist(id = 1, name = "New Checklist1", user = user)
+        val expected = Checklist(id = 101, name = "New Checklist1", user = user)
         every { checklistRepository.findByIdAndUserId(expected.id, user.id) } returns Optional.of(expected)
         val checklist = checklistService.getChecklist(expected.id, user.id)
         verify { checklistRepository.findByIdAndUserId(expected.id, user.id) }
@@ -51,7 +51,7 @@ class ChecklistServiceTest {
 
     @Test
     fun `Fetching nonexistent resource throws ChecklistNotFoundException`() {
-        val id = 1L
+        val id = 101L
         every { checklistRepository.findByIdAndUserId(id, user.id) } returns Optional.empty()
         assertThrows<ChecklistNotFoundException> { checklistService.getChecklist(id, user.id) }
         verify { checklistRepository.findByIdAndUserId(id, user.id) }
@@ -68,8 +68,8 @@ class ChecklistServiceTest {
 
     @Test
     fun `Update existing checklist`() {
-        val checklist = Checklist(id = 1, name = "Shopping List", user = user)
-        val oldChecklist = Checklist(id = 1, name = "New Checklist", user = user)
+        val checklist = Checklist(id = 101, name = "Shopping List", user = user)
+        val oldChecklist = Checklist(id = 101, name = "New Checklist", user = user)
         every { checklistRepository.findByIdAndUserId(checklist.id, user.id) } returns Optional.of(oldChecklist)
         every { checklistRepository.save(oldChecklist) } returns checklist
         val newChecklist = checklistService.update(checklist)
@@ -88,7 +88,7 @@ class ChecklistServiceTest {
 
     @Test
     fun `Delete checklist`() {
-        val checklistId = 1L
+        val checklistId = 101L
         justRun { checklistRepository.deleteByIdAndUserId(checklistId, user.id) }
         checklistService.delete(checklistId, user.id)
         verify { checklistRepository.deleteByIdAndUserId(checklistId, user.id) }

@@ -38,7 +38,7 @@ class ChecklistControllerTest {
     private val jackson = jacksonObjectMapper()
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-    private val user = User(id = 1, username = "user", email = "mail@domain.com")
+    private val user = User(id = 100, username = "user", email = "mail@domain.com")
 
     private val oidcUser = DefaultOidcUser(
         AuthorityUtils.createAuthorityList("SCOPE_message:read", "SCOPE_message:write"),
@@ -56,9 +56,9 @@ class ChecklistControllerTest {
     @Test
     fun `Fetch all checklists of user`() {
         val expectedChecklists = listOf(
-            Checklist(id = 1, name = "New Checklist1", user = user),
-            Checklist(id = 2, name = "New Checklist2", user = user),
-            Checklist(id = 3, name = "New Checklist3", user = user))
+            Checklist(id = 101, name = "New Checklist1", user = user),
+            Checklist(id = 102, name = "New Checklist2", user = user),
+            Checklist(id = 103, name = "New Checklist3", user = user))
         every { checklistService.getChecklists(user.id) } returns expectedChecklists
         val result = mockMvc.perform(
             get("/checklists")
@@ -87,7 +87,7 @@ class ChecklistControllerTest {
 
     @Test
     fun `Fetch single checklist`() {
-        val expectedChecklist = Checklist(id = 1, name = "New Checklist", user = user)
+        val expectedChecklist = Checklist(id = 100, name = "New Checklist", user = user)
         every { checklistService.getChecklist(expectedChecklist.id, user.id) } returns expectedChecklist
         val result = mockMvc.perform(
             get("/checklists/${expectedChecklist.id}")
@@ -115,7 +115,7 @@ class ChecklistControllerTest {
 
     @Test
     fun `Create new checklist`() {
-        val expectedChecklist = Checklist(id = 1, name = "ReadList", user = user)
+        val expectedChecklist = Checklist(id = 101, name = "ReadList", user = user)
         val checklistJson = "{\"name\":\"ReadList\"}"
         every { checklistService.create( match { it.name == "ReadList" } ) } returns expectedChecklist
         val result = mockMvc.perform(
@@ -135,7 +135,7 @@ class ChecklistControllerTest {
     @Test
     fun `Update existing checklist`() {
         val checklistJson = "{\"name\":\"DescriptiveNameForCollectionOfTasks\"}"
-        val updatedChecklist = Checklist(id = 1, name = "DescriptiveNameForCollectionOfTasks", user = user)
+        val updatedChecklist = Checklist(id = 101, name = "DescriptiveNameForCollectionOfTasks", user = user)
         every {
             checklistService.update(match { it.name == "DescriptiveNameForCollectionOfTasks" })
         } returns updatedChecklist
@@ -171,7 +171,7 @@ class ChecklistControllerTest {
 
     @Test
     fun `Delete checklist`() {
-        val id = 1L
+        val id = 101L
         every { checklistService.delete(id, user.id) } returns Unit
         mockMvc.perform(
             delete("/checklists/$id")

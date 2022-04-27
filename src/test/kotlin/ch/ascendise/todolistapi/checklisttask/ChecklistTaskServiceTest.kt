@@ -27,12 +27,12 @@ class ChecklistTaskServiceTest {
     @MockkBean
     private lateinit var checklistService: ChecklistService
 
-    private val user = User(id = 1, username = "User", email = "mail@domain.com")
+    private val user = User(id = 100, username = "User", email = "mail@domain.com")
 
     @Test
     fun `Add task to checklist`() {
-        val checklist = Checklist(id = 1, name = "Checklist1", user = user)
-        val task = Task(id = 1, name = "Task", user = user)
+        val checklist = Checklist(id = 200, name = "Checklist1", user = user)
+        val task = Task(id = 300, name = "Task", user = user)
         every { taskService.getById(user.id, task.id) } returns task
         every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
         every { checklistService.update(any()) } returnsArgument 0
@@ -46,9 +46,9 @@ class ChecklistTaskServiceTest {
 
     @Test
     fun `Remove task from checklist`() {
-        val task = Task(id = 1, name = "Task", user = user)
-        val task2 = Task(id = 2, name = "Task2", user = user)
-        val checklist = Checklist(id = 1, name = "Checklist1", user = user, tasks = mutableListOf(task, task2))
+        val task = Task(id = 300, name = "Task", user = user)
+        val task2 = Task(id = 301, name = "Task2", user = user)
+        val checklist = Checklist(id = 200, name = "Checklist1", user = user, tasks = mutableListOf(task, task2))
         every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
         every { checklistService.update(any()) } returnsArgument 0
         val checklistTask = ChecklistTask(checklist.id, task.id, user.id)
@@ -61,9 +61,9 @@ class ChecklistTaskServiceTest {
 
     @Test
     fun `Ignore remove if task doesn't exist in checklist`() {
-        val task = Task(id = 1, name = "Task", user = user)
-        val task2 = Task(id = 2, name = "Task2", user = user)
-        val checklist = Checklist(id = 1, name = "Checklist1", user = user, tasks = mutableListOf(task, task2))
+        val task = Task(id = 300, name = "Task", user = user)
+        val task2 = Task(id = 301, name = "Task2", user = user)
+        val checklist = Checklist(id = 200, name = "Checklist1", user = user, tasks = mutableListOf(task, task2))
         every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
         every { checklistService.update(any()) } returnsArgument 0
         val checklistTask = ChecklistTask(checklist.id, 100, user.id)
