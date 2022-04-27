@@ -11,16 +11,16 @@ class ChecklistTaskService(
     val checklistService: ChecklistService
 ){
 
-    fun addTask(checklistId: Long, taskId: Long, userId: Long): Checklist{
-        val task = taskService.getById(userId, taskId)
-        val checklist = checklistService.getChecklist(checklistId, userId)
+    fun addTask(checklistTask: ChecklistTask): Checklist{
+        val task = taskService.getById(checklistTask.userId, checklistTask.taskId)
+        val checklist = checklistService.getChecklist(checklistTask.checklistId, checklistTask.userId)
         checklist.tasks.add(task)
         return checklistService.update(checklist)
     }
 
-    fun removeTask(checklistId: Long, taskId: Long, userId: Long): Checklist{
-        val checklist = checklistService.getChecklist(checklistId, userId)
-        checklist.tasks.removeIf { it.id == taskId }
+    fun removeTask(checklistTask: ChecklistTask): Checklist{
+        val checklist = checklistService.getChecklist(checklistTask.checklistId, checklistTask.taskId)
+        checklist.tasks.removeIf { it.id == checklistTask.taskId }
         return checklistService.update(checklist)
     }
 }

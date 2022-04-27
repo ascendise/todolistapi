@@ -37,7 +37,8 @@ class ChecklistTaskServiceTest {
         every { taskService.getById(user.id, task.id) } returns task
         every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
         every { checklistService.update(any()) } returnsArgument 0
-        val updatedChecklist = service.addTask(checklist.id, task.id, user.id)
+        val checklistTask = ChecklistTask(checklist.id, task.id, user.id)
+        val updatedChecklist = service.addTask(checklistTask)
         verify { taskService.getById(user.id, task.id) }
         verify { checklistService.getChecklist(checklist.id, user.id) }
         verify { checklistService.update(any()) }
@@ -51,7 +52,8 @@ class ChecklistTaskServiceTest {
         val checklist = Checklist(id = 1, name = "Checklist1", user = user, tasks = mutableListOf(task, task2))
         every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
         every { checklistService.update(any()) } returnsArgument 0
-        val updatedChecklist = service.removeTask(checklist.id, task.id, user.id)
+        val checklistTask = ChecklistTask(checklist.id, task.id, user.id)
+        val updatedChecklist = service.removeTask(checklistTask)
         verify { checklistService.getChecklist(checklist.id, user.id) }
         verify { checklistService.update(any()) }
         assertFalse(updatedChecklist.tasks.contains(task))
