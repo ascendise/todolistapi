@@ -7,14 +7,13 @@ import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.task.TaskRepository
 import ch.ascendise.todolistapi.task.TaskService
 import ch.ascendise.todolistapi.user.User
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.boot.test.context.SpringBootTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.*
 
 @SpringBootTest
 class ChecklistTaskServiceTest {
@@ -58,6 +57,20 @@ class ChecklistTaskServiceTest {
         verify { checklistService.update(any()) }
         assertFalse(updatedChecklist.tasks.contains(task))
         assertTrue(updatedChecklist.tasks.contains(task2))
+    }
+
+    @Test
+    fun `Ignore remove if task doesn't exist in checklist`() {
+        val task = Task(id = 1, name = "Task", user = user)
+        val task2 = Task(id = 2, name = "Task2", user = user)
+        val checklist = Checklist(id = 1, name = "Checklist1", user = user, tasks = mutableListOf(task, task2))
+        every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
+        every { checklistService.update(any()) } returnsArgument 0
+        val checklistTask = ChecklistTask(checklist.id, 100, user.id)
+        val updatedChecklist = service.removeTask(checklistTask)
+        verify { checklistService.getChecklist(checklist.id, user.id) }
+        verify { checklistService.update(any()) }
+        assertEquals(checklist, updatedChecklist)
     }
 
 }
