@@ -10,6 +10,8 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.justRun
+import io.mockk.verify
 import org.aspectj.lang.annotation.Before
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +27,8 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.net.URI
+import kotlin.math.exp
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -77,6 +81,7 @@ class ChecklistTaskControllerTest {
         )
             .andExpect(status().isOk)
             .andReturn()
+        verify { service.getRelations(user.id) }
         val relations: List<ChecklistTaskDto> = jackson.readValue(result.response.contentAsString)
         assertEquals(expectedRelationDtos, relations)
     }
@@ -84,12 +89,14 @@ class ChecklistTaskControllerTest {
     @Test
     fun `Add task to checklist`() {
         val checklistTaskJson = "{\"checklistId\":301,\"taskId\":201}"
-        val expectedChecklist = Checklist(id = 301, name = "Checklist", user = user, tasks = mutableListOf(
-            Task(id = 201, name = "Task", user = user)
-        ))
+        val expectedChecklist = Checklist(
+            id = 301, name = "Checklist", user = user, tasks = mutableListOf(
+                Task(id = 201, name = "Task", user = user)
+            )
+        )
         every {
             service.addTask(ChecklistTask(301, 201, 100))
-        }returns expectedChecklist
+        } returns expectedChecklist
         val result = mockMvc.perform(
             put("/checklists/tasks")
                 .with(oidcLogin().oidcUser(oidcUser))
@@ -99,8 +106,26 @@ class ChecklistTaskControllerTest {
         )
             .andExpect(status().isOk)
             .andReturn()
-        val checklist : Checklist = jackson.readValue(result.response.contentAsString)
-        assertEquals(expectedChecklist, checklist)
+        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
+        verify {
+            service.addTask(ChecklistTask(301, 201, user.id))
+            assertEquals(expectedChecklist, checklist)
+        }
     }
 
+    @Test
+    fun `Remove task from checklist`() {
+        val expectedChecklist = Checklist(id =301, name = "Checklist", user = user)
+        every { service.removeTask(ChecklistTask(301, 201, user.id)) } returns expectedChecklist
+        val result = mockMvc.perform(
+            delete(URI("/checklists/301/tasks/201"))
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+        verify { service.removeTask(ChecklistTask(301, 201, user.id)) }
+        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
+        assertEquals(expectedChecklist, checklist)
+    }
 }
