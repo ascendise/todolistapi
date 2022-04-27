@@ -1,8 +1,11 @@
 package ch.ascendise.todolistapi.checklisttask
 
+import ch.ascendise.todolistapi.checklist.Checklist
+import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserService
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.ninjasquad.springmockk.MockkBean
@@ -17,9 +20,10 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
@@ -35,6 +39,7 @@ class ChecklistTaskControllerTest {
     private lateinit var mockMvc: MockMvc
 
     private val jackson = jacksonObjectMapper()
+        .registerModule(JavaTimeModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     private val user = User(id = 100, username = "user", email = "mail@domain.com")
@@ -59,7 +64,8 @@ class ChecklistTaskControllerTest {
             ChecklistTask(checklistId = 301, taskId = 202, userId = user.id),
             ChecklistTask(checklistId = 301, taskId = 203, userId = user.id),
             ChecklistTask(checklistId = 302, taskId = 202, userId = user.id),
-            ChecklistTask(checklistId = 302, taskId = 204, userId = user.id))
+            ChecklistTask(checklistId = 302, taskId = 204, userId = user.id)
+        )
         every { service.getRelations(user.id) } returns expectedRelations
         val result = mockMvc.perform(
             get("/checklists/tasks")
@@ -69,6 +75,29 @@ class ChecklistTaskControllerTest {
             .andReturn()
         val relations: List<ChecklistTask> = jackson.readValue(result.response.contentAsString)
         assertEquals(expectedRelations, relations)
+    }
+
+    @Test
+    fun `Add task to checklist`() {
+        val checklistTaskJson = "{\"checklistId\":301,\"taskId\":201}"
+        val expectedChecklist = Checklist(id = 301, name = "Checklist", user = user, tasks = mutableListOf(
+            Task(id = 201, name = "Task", user = user)
+        ))
+        every {
+            service.addTask(ChecklistTask(301, 201, 100))
+        }returns expectedChecklist
+        val result = mockMvc.perform(
+            put("/checklists/tasks")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(checklistTaskJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+        val checklist : Checklist = jackson.readValue(result.response.contentAsString)
+        assertEquals(expectedChecklist, checklist)
+
     }
 
 }
