@@ -17,4 +17,10 @@ class ChecklistTaskService(
         checklist.tasks.add(task)
         return checklistService.update(checklist)
     }
+
+    fun removeTask(checklistId: Long, taskId: Long, userId: Long): Checklist{
+        val checklist = checklistService.getChecklist(checklistId, userId)
+        checklist.tasks.removeIf { it.id == taskId }
+        return checklistService.update(checklist)
+    }
 }
