@@ -18,9 +18,20 @@ class ChecklistTaskService(
         return checklistService.update(checklist)
     }
 
-    fun removeTask(checklistTask: ChecklistTask): Checklist{
+    fun removeTask(checklistTask: ChecklistTask): Checklist {
         val checklist = checklistService.getChecklist(checklistTask.checklistId, checklistTask.userId)
         checklist.tasks.removeIf { it.id == checklistTask.taskId }
         return checklistService.update(checklist)
+    }
+
+    fun getRelations(userId: Long): List<ChecklistTask> {
+        val checklists = checklistService.getChecklists(userId)
+        val relations = mutableListOf<ChecklistTask>()
+        for(checklist in checklists) {
+            for(task in checklist.tasks) {
+                relations.add(ChecklistTask(checklist.id, task.id, userId))
+            }
+        }
+        return relations
     }
 }

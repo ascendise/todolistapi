@@ -73,4 +73,21 @@ class ChecklistTaskServiceTest {
         assertEquals(checklist, updatedChecklist)
     }
 
+    @Test
+    fun `Return all known relations`() {
+        val task = Task(id = 300, name = "Task", user = user)
+        val task2 = Task(id = 301, name = "Task2", user = user)
+        val task3 = Task(id = 302, name = "Task3", user = user)
+        val checklist1 = Checklist(id = 201, name = "Checklist1", user = user, tasks = mutableListOf(task))
+        val checklist2 = Checklist(id = 202, name = "Checklist2", user = user, tasks = mutableListOf(task2, task3))
+        val expectedChecklistTasks = mutableListOf(
+            ChecklistTask(checklist1.id, task.id, user.id),
+            ChecklistTask(checklist2.id, task2.id, user.id),
+            ChecklistTask(checklist2.id, task3.id, user.id)
+        )
+        every { checklistService.getChecklists(user.id) } returns listOf(checklist1, checklist2)
+        val checklistTasks = service.getRelations(user.id)
+        verify { checklistService.getChecklists(user.id) }
+        assertEquals(expectedChecklistTasks, checklistTasks)
+    }
 }
