@@ -59,13 +59,17 @@ class ChecklistTaskControllerTest {
 
     @Test
     fun `Return relations as list`() {
-        val expectedRelations = listOf(
-            ChecklistTask(checklistId = 301, taskId = 201, userId = user.id),
-            ChecklistTask(checklistId = 301, taskId = 202, userId = user.id),
-            ChecklistTask(checklistId = 301, taskId = 203, userId = user.id),
-            ChecklistTask(checklistId = 302, taskId = 202, userId = user.id),
-            ChecklistTask(checklistId = 302, taskId = 204, userId = user.id)
+        val expectedRelationDtos = listOf(
+            ChecklistTaskDto(checklistId = 301, taskId = 201),
+            ChecklistTaskDto(checklistId = 301, taskId = 202),
+            ChecklistTaskDto(checklistId = 301, taskId = 203),
+            ChecklistTaskDto(checklistId = 302, taskId = 202),
+            ChecklistTaskDto(checklistId = 302, taskId = 204)
         )
+        val expectedRelations = mutableListOf<ChecklistTask>()
+        for(relationDto in expectedRelationDtos) {
+            expectedRelations.add(relationDto.toChecklistTask(user))
+        }
         every { service.getRelations(user.id) } returns expectedRelations
         val result = mockMvc.perform(
             get("/checklists/tasks")
@@ -73,8 +77,8 @@ class ChecklistTaskControllerTest {
         )
             .andExpect(status().isOk)
             .andReturn()
-        val relations: List<ChecklistTask> = jackson.readValue(result.response.contentAsString)
-        assertEquals(expectedRelations, relations)
+        val relations: List<ChecklistTaskDto> = jackson.readValue(result.response.contentAsString)
+        assertEquals(expectedRelationDtos, relations)
     }
 
     @Test
@@ -97,7 +101,6 @@ class ChecklistTaskControllerTest {
             .andReturn()
         val checklist : Checklist = jackson.readValue(result.response.contentAsString)
         assertEquals(expectedChecklist, checklist)
-
     }
 
 }
