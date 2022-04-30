@@ -1,5 +1,6 @@
 package ch.ascendise.todolistapi.user
 
+import org.springframework.hateoas.RepresentationModel
 import javax.persistence.*
 
 @Entity
@@ -7,7 +8,7 @@ class User(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var id: Long = 0,
     @Column(unique = true) var email: String,
     @Column(unique = true) var username: String
-    ) {
+    ): RepresentationModel<User>() {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -6,12 +6,11 @@ import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.stereotype.Component
 
 @Component
-class UserModelAssembler : RepresentationModelAssembler<User, EntityModel<User>>{
+class UserModelAssembler : RepresentationModelAssembler<User, User>{
 
-    override fun toModel(user: User): EntityModel<User> =
-        EntityModel.of(user,
-            linkTo<UserController> { getCurrentUser(user) }.withSelfRel(),
-            linkTo<UserController> { getCurrentUser(user) }.withRel("user")
-        )
-
+    override fun toModel(user: User): User {
+        user.add(linkTo<UserController> { getCurrentUser(user) }.withSelfRel())
+        user.add(linkTo<UserController> { getCurrentUser(user) }.withRel("user"))
+        return user
+    }
 }
