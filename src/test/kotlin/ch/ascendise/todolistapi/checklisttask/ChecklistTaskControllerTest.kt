@@ -13,6 +13,7 @@ import io.mockk.every
 import io.mockk.justRun
 import io.mockk.verify
 import org.aspectj.lang.annotation.Before
+import org.hamcrest.core.Is
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,6 +27,8 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.net.URI
 import kotlin.math.exp
@@ -127,5 +130,30 @@ class ChecklistTaskControllerTest {
         verify { service.removeTask(ChecklistTask(301, 201, user.id)) }
         val checklist: Checklist = jackson.readValue(result.response.contentAsString)
         assertEquals(expectedChecklist, checklist)
+    }
+
+    @Test
+    fun `Correct format for GET relations`() {
+        val expectedRelationDtos = listOf(
+            ChecklistTaskDto(checklistId = 301, taskId = 201),
+            ChecklistTaskDto(checklistId = 301, taskId = 202))
+        val expectedRelations = mutableListOf<ChecklistTask>()
+        for(relationDto in expectedRelationDtos) {
+            expectedRelations.add(relationDto.toChecklistTask(user))
+        }
+        every { service.getRelations(user.id) } returns expectedRelations
+        mockMvc.perform(
+            get("/checklists/tasks")
+                .with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(MockMvcResultMatchers.jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(MockMvcResultMatchers.jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(MockMvcResultMatchers.jsonPath("_embedded.relations[0]._links.checklist.href", Is.`is`("http://localhost/checklists/301")))
+            .andExpect(MockMvcResultMatchers.jsonPath("_embedded.relations[0]._links.task.href", Is.`is`("http://localhost/tasks/201")))
+            .andExpect(MockMvcResultMatchers.jsonPath("_embedded.relations[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/301/tasks/201")))
+            .andExpect(MockMvcResultMatchers.jsonPath("_embedded.relations[0]._links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andReturn()
     }
 }
