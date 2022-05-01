@@ -10,6 +10,8 @@ class User(
     @Column(unique = true) var username: String
     ): RepresentationModel<User>() {
 
+    constructor(user: User) : this(user.id, user.email, user.username) {}
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

@@ -370,4 +370,17 @@ class TaskIntegrationTest {
             .andExpect(content().string(""))
         assertTrue(taskRepository.existsById(task.id))
     }
+
+    @Test
+    fun `Include user links in response body`() {
+        val oidcUser = createOidcUser(user)
+        val tasks = taskRepository.findAllByUserId(user.id)
+        mockMvc.perform(
+            get("/tasks").with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(jsonPath("_embedded.taskList[0].user._links.self.href",`is`("http://localhost/user")))
+            .andExpect(jsonPath("_embedded.taskList[0].user._links.user.href",`is`("http://localhost/user")))
+    }
 }

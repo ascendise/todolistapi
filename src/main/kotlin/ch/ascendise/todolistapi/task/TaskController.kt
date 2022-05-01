@@ -20,7 +20,7 @@ class TaskController(
 ) {
 
     @GetMapping("/tasks")
-    fun getTasks(@CurrentUser user: User): CollectionModel<EntityModel<Task>> {
+    fun getTasks(@CurrentUser user: User): CollectionModel<Task> {
         val tasks = taskService.getAll(user.id).stream()
             .map { taskModelAssembler.toModel(it) }
             .collect(Collectors.toList())
@@ -29,23 +29,23 @@ class TaskController(
     }
 
     @GetMapping("/tasks/{id}")
-    fun getTask(@CurrentUser user: User, @PathVariable id: Long): EntityModel<Task> =
+    fun getTask(@CurrentUser user: User, @PathVariable id: Long): Task =
         taskService.getById(user.id, id)
             .let { taskModelAssembler.toModel(it) }
 
     @PostMapping("/tasks")
-    fun createTask(@CurrentUser user: User, @RequestBody taskDto: TaskDto): ResponseEntity<EntityModel<Task>>
+    fun createTask(@CurrentUser user: User, @RequestBody taskDto: TaskDto): ResponseEntity<Task>
     {
         val task = taskDto.toTask(user)
         val responseBody = taskService.create(task)
             .let { taskModelAssembler.toModel(it) }
         return ResponseEntity
-            .created(URI.create("/${responseBody.content?.id}"))
+            .created(URI.create("/${responseBody.id}"))
             .body(responseBody)
     }
 
     @PutMapping("/tasks/{id}")
-    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody taskDto: TaskDto): ResponseEntity<EntityModel<Task>>
+    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody taskDto: TaskDto): ResponseEntity<Task>
     {
         val task = taskDto.toTask(user)
         task.id = id

@@ -1,6 +1,7 @@
 package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.user.User
+import org.springframework.hateoas.RepresentationModel
 import java.time.LocalDate
 import javax.persistence.*
 
@@ -12,7 +13,7 @@ class Task (
     var startDate: LocalDate = LocalDate.now(),
     var endDate: LocalDate? = null,
     @ManyToOne var user: User
-        ){
+        ): RepresentationModel<Task>(){
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
