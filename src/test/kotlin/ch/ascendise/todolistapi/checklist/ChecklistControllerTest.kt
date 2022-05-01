@@ -194,7 +194,7 @@ class ChecklistControllerTest {
             Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2)),
             Checklist(id = 102, name = "New Checklist2", user = user, tasks = mutableListOf(task3)))
         every { checklistService.getChecklists(user.id) } returns expectedChecklists
-        val result = mockMvc.perform(
+        mockMvc.perform(
             get("/checklists")
                 .with(oidcLogin().oidcUser(oidcUser))
         )
@@ -210,6 +210,29 @@ class ChecklistControllerTest {
             .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
             .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
             .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
+            .andReturn()
+    }
+
+    @Test
+    fun `Correct format for GET single checklist`() {
+        val task1 = Task(id = 201, name = "Task1", user = user)
+        val task2 = Task(id = 202, name = "Task2", user = user)
+        val checklist = Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2))
+        every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
+        mockMvc.perform(
+            get("/checklists/${checklist.id}")
+                .with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
+            .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
+            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("user._links.self.href", Is.`is`("http://localhost/user")))
+            .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
+            .andExpect(jsonPath("tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
+            .andExpect(jsonPath("tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
+            .andExpect(jsonPath("tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
             .andReturn()
     }
 }

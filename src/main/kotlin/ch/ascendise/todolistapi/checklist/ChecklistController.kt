@@ -39,6 +39,7 @@ class ChecklistController(
     @GetMapping("/checklists/{id}")
     fun getChecklist(@PathVariable id: Long, @CurrentUser user: User) =
         service.getChecklist(id, user.id)
+            .let { modelAssembler.toModel(it) }
 
     @PutMapping("/checklists/{id}")
     fun update(@PathVariable id: Long, @CurrentUser user: User, @RequestBody dto: ChecklistDto): ResponseEntity<Checklist> {
