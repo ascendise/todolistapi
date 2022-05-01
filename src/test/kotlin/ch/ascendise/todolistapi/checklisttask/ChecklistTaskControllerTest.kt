@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.justRun
@@ -28,8 +29,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.net.URI
 import kotlin.math.exp
 
@@ -85,7 +85,8 @@ class ChecklistTaskControllerTest {
             .andExpect(status().isOk)
             .andReturn()
         verify { service.getRelations(user.id) }
-        val relations: List<ChecklistTaskDto> = jackson.readValue(result.response.contentAsString)
+        val jsonNode = jackson.readTree(result.response.contentAsString)
+        val relations: List<ChecklistTaskDto> = jackson.treeToValue(jsonNode.at("/_embedded/relations"))
         assertEquals(expectedRelationDtos, relations)
     }
 
@@ -148,12 +149,43 @@ class ChecklistTaskControllerTest {
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/hal+json"))
-            .andExpect(MockMvcResultMatchers.jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(MockMvcResultMatchers.jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(MockMvcResultMatchers.jsonPath("_embedded.relations[0]._links.checklist.href", Is.`is`("http://localhost/checklists/301")))
-            .andExpect(MockMvcResultMatchers.jsonPath("_embedded.relations[0]._links.task.href", Is.`is`("http://localhost/tasks/201")))
-            .andExpect(MockMvcResultMatchers.jsonPath("_embedded.relations[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/301/tasks/201")))
-            .andExpect(MockMvcResultMatchers.jsonPath("_embedded.relations[0]._links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("_embedded.relations[0]._links.checklist.href", Is.`is`("http://localhost/checklists/301")))
+            .andExpect(jsonPath("_embedded.relations[0]._links.task.href", Is.`is`("http://localhost/tasks/201")))
+            .andExpect(jsonPath("_embedded.relations[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/301/tasks/201")))
+            .andExpect(jsonPath("_embedded.relations[0]._links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andReturn()
+    }
+
+    @Test
+    fun `Correct format for PUT task to checklist`() {
+        val checklistTaskJson = "{\"checklistId\":301,\"taskId\":201}"
+        val expectedChecklist = Checklist(
+            id = 301, name = "Checklist", user = user, tasks = mutableListOf(
+                Task(id = 201, name = "Task", user = user)
+            )
+        )
+        every {
+            service.addTask(ChecklistTask(301, 201, 100))
+        } returns expectedChecklist
+        mockMvc.perform(
+            put("/checklists/tasks")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(checklistTaskJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/301")))
+            .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
+            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("user._links.self.href", Is.`is`("http://localhost/user")))
+            .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
+            .andExpect(jsonPath("tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
+            .andExpect(jsonPath("tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
+            .andExpect(jsonPath("tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/301/tasks/201")))
             .andReturn()
     }
 }
