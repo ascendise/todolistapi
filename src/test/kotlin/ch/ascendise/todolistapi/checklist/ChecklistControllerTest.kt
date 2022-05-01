@@ -6,6 +6,7 @@ import ch.ascendise.todolistapi.user.UserService
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
@@ -69,7 +70,8 @@ class ChecklistControllerTest {
             .andExpect(status().isOk)
             .andReturn()
         verify { checklistService.getChecklists(user.id) }
-        val checklists: List<Checklist> = jackson.readValue(result.response.contentAsString)
+        val jsonNode = jackson.readTree(result.response.contentAsString)
+        val checklists: List<Checklist> = jackson.treeToValue(jsonNode.at("/_embedded/checklistList"))
         assertEquals(expectedChecklists, checklists)
     }
 
