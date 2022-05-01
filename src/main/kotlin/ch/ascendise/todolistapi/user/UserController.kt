@@ -13,7 +13,7 @@ class UserController(
 ) {
 
     @GetMapping("/user")
-    fun getCurrentUser(@CurrentUser user: User) : EntityModel<User> =
+    fun getCurrentUser(@CurrentUser user: User) : User =
         userModelAssembler.toModel(user)
 
     @DeleteMapping("/user")

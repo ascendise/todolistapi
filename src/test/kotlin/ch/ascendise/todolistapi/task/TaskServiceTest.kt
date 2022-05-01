@@ -2,15 +2,15 @@ package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.user.User
 import com.ninjasquad.springmockk.MockkBean
-import io.mockk.*
+import io.mockk.every
+import io.mockk.justRun
+import io.mockk.verify
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.crossstore.ChangeSetPersister.NotFoundException
 import java.time.LocalDate
-import java.util.Optional
-import javax.swing.text.html.Option
+import java.util.*
 
 @SpringBootTest
 class TaskServiceTest {
@@ -126,7 +126,7 @@ class TaskServiceTest {
     fun `Return specific task`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         every { taskRepository.findByIdAndUserId(1, 1)} returns Optional.of(Task(name = "Dummy", user = user))
-        taskService.getById(user, 1)
+        taskService.getById(user.id, 1)
         verify { taskRepository.findByIdAndUserId(1, 1)}
     }
 
@@ -134,7 +134,7 @@ class TaskServiceTest {
     fun `Throw exception when task is not found`() {
         val user = User(id = 1, email = "mail@domain.com", username = "Max")
         every { taskRepository.findByIdAndUserId(101, 1) } returns Optional.empty()
-        assertThrows<TaskNotFoundException> { taskService.getById(user, 101) }
+        assertThrows<TaskNotFoundException> { taskService.getById(user.id, 101) }
     }
 
     @Test
