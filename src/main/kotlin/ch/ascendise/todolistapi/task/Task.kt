@@ -12,6 +12,7 @@ class Task (
     var description: String = "",
     var startDate: LocalDate = LocalDate.now(),
     var endDate: LocalDate? = null,
+    var isDone: Boolean = false,
     @ManyToOne var user: User
         ): RepresentationModel<Task>(){
 
@@ -26,6 +27,7 @@ class Task (
         if (description != other.description) return false
         if (startDate != other.startDate) return false
         if (endDate != other.endDate) return false
+        if (isDone != other.isDone) return false
         if (user != other.user) return false
 
         return true
@@ -37,6 +39,7 @@ class Task (
         result = 31 * result + description.hashCode()
         result = 31 * result + startDate.hashCode()
         result = 31 * result + (endDate?.hashCode() ?: 0)
+        result = 31 * result + (isDone?.hashCode() ?: 0)
         result = 31 * result + user.hashCode()
         return result
     }
