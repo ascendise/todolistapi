@@ -12,6 +12,7 @@ import io.mockk.every
 import io.mockk.verify
 import org.hamcrest.core.Is
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -85,8 +86,8 @@ class ChecklistControllerTest {
             .andExpect(status().isOk)
             .andReturn()
         verify { checklistService.getChecklists(user.id) }
-        val checklists: List<Checklist> = jackson.readValue(result.response.contentAsString)
-        assertEquals(emptyList<Checklist>(), checklists)
+        val node = jackson.readTree(result.response.contentAsString)
+        assertTrue(node.findPath("/_embedded/checklistList").isMissingNode)
     }
 
     @Test
