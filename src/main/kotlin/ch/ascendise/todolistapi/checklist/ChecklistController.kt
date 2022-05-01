@@ -30,7 +30,9 @@ class ChecklistController(
 
     @PostMapping("/checklists")
     fun create(@CurrentUser user: User, @RequestBody checklist: ChecklistDto): ResponseEntity<Checklist> {
-        val newChecklist = checklist.toChecklist(user).let { service.create(it) }
+        val newChecklist = checklist.toChecklist(user)
+            .let { service.create(it) }
+            .let { modelAssembler.toModel(it)}
         return ResponseEntity
             .created(URI("/checklists/${newChecklist.id}"))
             .body(newChecklist)

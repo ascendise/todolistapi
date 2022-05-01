@@ -4,6 +4,7 @@ import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserService
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.treeToValue
@@ -40,6 +41,7 @@ class ChecklistControllerTest {
     private lateinit var userService: UserService
 
     private val jackson = jacksonObjectMapper()
+        .registerModule(JavaTimeModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     private val user = User(id = 100, username = "user", email = "mail@domain.com")
@@ -236,6 +238,30 @@ class ChecklistControllerTest {
             .andExpect(jsonPath("tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
             .andExpect(jsonPath("tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
             .andExpect(jsonPath("tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
+            .andReturn()
+    }
+
+    @Test
+    fun `Correct format for POST checklist`() {
+        val task1 = Task(id = 201, name = "Task1", user = user)
+        val task2 = Task(id = 202, name = "Task2", user = user)
+        val checklist = Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2))
+        val checklistJson = jackson.writeValueAsString(checklist)
+        every { checklistService.create(any()) } returns checklist
+        mockMvc.perform(
+            post("/checklists/")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(checklistJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isCreated)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
+            .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
+            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("user._links.self.href", Is.`is`("http://localhost/user")))
+            .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
             .andReturn()
     }
 }
