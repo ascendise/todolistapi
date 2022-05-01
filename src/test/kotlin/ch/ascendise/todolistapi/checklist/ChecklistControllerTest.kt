@@ -1,5 +1,6 @@
 package ch.ascendise.todolistapi.checklist
 
+import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserService
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
+import org.hamcrest.core.Is
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,7 +23,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -181,5 +183,33 @@ class ChecklistControllerTest {
             .andExpect(status().isNoContent)
             .andReturn()
         verify { checklistService.delete(id, user.id) }
+    }
+
+    @Test
+    fun `Correct format for GET request`() {
+        val task1 = Task(id = 201, name = "Task1", user = user)
+        val task2 = Task(id = 202, name = "Task2", user = user)
+        val task3 = Task(id = 203, name = "Task3", user = user)
+        val expectedChecklists = listOf(
+            Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2)),
+            Checklist(id = 102, name = "New Checklist2", user = user, tasks = mutableListOf(task3)))
+        every { checklistService.getChecklists(user.id) } returns expectedChecklists
+        val result = mockMvc.perform(
+            get("/checklists")
+                .with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists")))
+            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("_embedded.checklistList[0]._links.self.href", Is.`is`("http://localhost/checklists/101")))
+            .andExpect(jsonPath("_embedded.checklistList[0]._links.checklists.href", Is.`is`("http://localhost/checklists")))
+            .andExpect(jsonPath("_embedded.checklistList[0]._links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("_embedded.checklistList[0].user._links.self.href", Is.`is`("http://localhost/user")))
+            .andExpect(jsonPath("_embedded.checklistList[0].user._links.user.href", Is.`is`("http://localhost/user")))
+            .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
+            .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
+            .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
+            .andReturn()
     }
 }

@@ -1,20 +1,32 @@
 package ch.ascendise.todolistapi.checklist
 
+import ch.ascendise.todolistapi.checklisttask.ChecklistTask
+import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
+import org.springframework.hateoas.CollectionModel
+import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.net.URI
+import java.util.stream.Collectors
 
 @RestController
 class ChecklistController(
-    val service: ChecklistService
+    val service: ChecklistService,
+    val modelAssembler: ChecklistModelAssembler
 ) {
 
     @GetMapping("/checklists")
-    fun getChecklists(@CurrentUser user: User): List<Checklist> =
+    fun getChecklists(@CurrentUser user: User): CollectionModel<Checklist> =
         service.getChecklists(user.id)
+            .stream()
+            .map { modelAssembler.toModel(it) }
+            .collect(Collectors.toList())
+            .let { CollectionModel.of(it,
+                linkTo<ChecklistController> { getChecklists(user) }.withSelfRel(),
+                linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations")) }
 
     @PostMapping("/checklists")
     fun create(@CurrentUser user: User, @RequestBody checklist: ChecklistDto): ResponseEntity<Checklist> {

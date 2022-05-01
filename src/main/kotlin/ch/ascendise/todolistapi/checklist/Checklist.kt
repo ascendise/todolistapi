@@ -2,6 +2,7 @@ package ch.ascendise.todolistapi.checklist
 
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.task.Task
+import org.springframework.hateoas.RepresentationModel
 import javax.persistence.*
 
 @Entity
@@ -10,7 +11,7 @@ class Checklist(
     var name: String,
     @ManyToMany(targetEntity = Task::class) var tasks: MutableList<Task> = mutableListOf(),
     @ManyToOne var user: User
-) {
+): RepresentationModel<Checklist>() {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
