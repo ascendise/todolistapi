@@ -48,6 +48,7 @@ class ChecklistController(
         val checklist = dto.toChecklist(user)
         checklist.id = id
         val newChecklist = service.update(checklist)
+            .let { modelAssembler.toModel(it) }
         return ResponseEntity.ok(newChecklist)
     }
 

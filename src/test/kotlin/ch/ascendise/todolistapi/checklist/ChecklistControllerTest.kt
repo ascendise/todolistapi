@@ -264,4 +264,28 @@ class ChecklistControllerTest {
             .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
             .andReturn()
     }
+
+    @Test
+    fun `Correct format for PUT checklist`() {
+        val task1 = Task(id = 201, name = "Task1", user = user)
+        val task2 = Task(id = 202, name = "Task2", user = user)
+        val checklist = Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2))
+        val checklistJson = jackson.writeValueAsString(checklist)
+        every { checklistService.update(any()) } returns checklist
+        mockMvc.perform(
+            put("/checklists/${checklist.id}")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(checklistJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/hal+json"))
+            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
+            .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
+            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("user._links.self.href", Is.`is`("http://localhost/user")))
+            .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
+            .andReturn()
+    }
 }
