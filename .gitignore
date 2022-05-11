@@ -15,4 +15,5 @@ target/
 
 
 ### Config Files ###
-/src/main/resources/application.yml
+/src/test/resources/application.yml
+/application.yml
