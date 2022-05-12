@@ -5,4 +5,15 @@ spring:
         registration:
           google:
             clientId: [client-id]
-            clientSecret: [client-secret]
+            clientSecret: [client.secret]
+  jpa:
+    hibernate:
+      ddl-auto: "update"
+  datasource:
+    url: [mysql-url]
+    username: [mysql-username]
+    password: [mysql-password]
+    driver-class-name: "com.mysql.cj.jdbc.Driver"
+  output:
+    ansi:
+      enabled: "DETECT"
