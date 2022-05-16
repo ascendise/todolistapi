@@ -1,9 +1,12 @@
 package ch.ascendise.todolistapi.checklisttask
 
+import ch.ascendise.todolistapi.ApiError
 import ch.ascendise.todolistapi.checklist.Checklist
+import ch.ascendise.todolistapi.checklist.ChecklistNotFoundException
 import ch.ascendise.todolistapi.checklist.ChecklistResponseDto
 import ch.ascendise.todolistapi.checklist.toChecklistResponseDto
 import ch.ascendise.todolistapi.task.Task
+import ch.ascendise.todolistapi.task.TaskNotFoundException
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserService
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -184,5 +187,53 @@ class ChecklistTaskControllerTest {
             .andExpect(jsonPath("tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
             .andExpect(jsonPath("tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/301/tasks/201")))
             .andReturn()
+    }
+
+    @Test
+    fun `Trying to add nonexisting task returns 404`() {
+        val checklistTaskJson = "{\"checklistId\":301,\"taskId\":201}"
+        every {
+            service.addTask(ChecklistTask(301, 201, 100))
+        } throws TaskNotFoundException()
+        val result = mockMvc.perform(
+            put("/checklists/tasks")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(checklistTaskJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isNotFound)
+            .andReturn()
+        val expectedError = ApiError(
+            statusCode = 404,
+            name = "Not Found",
+            description = "Task could not be found"
+        )
+        val actualError: ApiError = jackson.readValue(result.response.contentAsString)
+        assertEquals(expectedError, actualError)
+    }
+
+    @Test
+    fun `Trying to add task to nonexisting checklist returns 404`() {
+        val checklistTaskJson = "{\"checklistId\":301,\"taskId\":201}"
+        every {
+            service.addTask(ChecklistTask(301, 201, 100))
+        } throws ChecklistNotFoundException()
+        val result = mockMvc.perform(
+            put("/checklists/tasks")
+                .with(oidcLogin().oidcUser(oidcUser))
+                .with(csrf())
+                .content(checklistTaskJson)
+                .contentType("application/json")
+        )
+            .andExpect(status().isNotFound)
+            .andReturn()
+        val expectedError = ApiError(
+            statusCode = 404,
+            name = "Not Found",
+            description = "Checklist could not be found"
+        )
+        val actualError: ApiError = jackson.readValue(result.response.contentAsString)
+        assertEquals(expectedError, actualError)
     }
 }
