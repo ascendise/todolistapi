@@ -2,7 +2,7 @@ package ch.ascendise.todolistapi.checklist
 
 import ch.ascendise.todolistapi.user.User
 
-class ChecklistDto(
+class ChecklistRequestDto(
     val name: String
 ) {
 

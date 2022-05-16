@@ -81,9 +81,12 @@ class TaskIntegrationTest {
             .andExpect(status().is2xxSuccessful)
             .andReturn()
         val json = jackson.readTree(result.response.contentAsString)
-        val tasksJson = json.at("/_embedded/taskList").toString()
-        val actualTasks: Set<Task> = jackson.readValue(tasksJson)
-        assertTrue(actualTasks == tasks, "Did not return expected tasks")
+        val tasksJson = json.at("/_embedded/tasks").toString()
+        val actualTasks: List<TaskResponseDto> = jackson.readValue(tasksJson)
+        val expectedTasks = tasks.stream()
+            .map { it.toTaskResponseDto() }
+            .toList()
+        assertEquals(actualTasks, expectedTasks, "Did not return expected tasks")
     }
 
     fun createOidcUser(user: User): DefaultOidcUser = DefaultOidcUser(
@@ -105,20 +108,21 @@ class TaskIntegrationTest {
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/hal+json"))
             .andExpect(jsonPath("_links.self.href", `is`("http://localhost/tasks")))
-            .andExpect(jsonPath("_embedded.taskList[0]._links.self.href",`is`("http://localhost/tasks/${tasks[0].id}")))
-            .andExpect(jsonPath("_embedded.taskList[0]._links.tasks.href",`is`("http://localhost/tasks")))
+            .andExpect(jsonPath("_embedded.tasks[0]._links.self.href",`is`("http://localhost/tasks/${tasks[0].id}")))
+            .andExpect(jsonPath("_embedded.tasks[0]._links.tasks.href",`is`("http://localhost/tasks")))
     }
 
     @Test
     fun `Return specific task for user`() {
         val oidcUser = createOidcUser(user)
-        val expectedTask = taskRepository.findAllByUserId(user.id)[0]
+        val returnedTask = taskRepository.findAllByUserId(user.id)[0]
         val result = mockMvc.perform(
-            get("/tasks/${expectedTask.id}").with(oidcLogin().oidcUser(oidcUser))
+            get("/tasks/${returnedTask.id}").with(oidcLogin().oidcUser(oidcUser))
         )
             .andExpect(status().isOk)
             .andReturn()
-        val actualTask: Task = jackson.readValue(result.response.contentAsString)
+        val actualTask: TaskResponseDto = jackson.readValue(result.response.contentAsString)
+        val expectedTask = returnedTask.toTaskResponseDto()
         assertEquals(expectedTask, actualTask, "Returned task does not match expected task")
     }
 
@@ -167,9 +171,10 @@ class TaskIntegrationTest {
         val result = sendPOSTRequest(newTask)
             .andExpect(status().isCreated)
             .andReturn()
-        val responseTask: Task = jackson.readValue(result.response.contentAsString)
+        val responseTask: TaskResponseDto = jackson.readValue(result.response.contentAsString)
         newTask.id = responseTask.id
-        assertEquals(responseTask, newTask, "Returned task is not the one sent")
+        val expectedTask = newTask.toTaskResponseDto()
+        assertEquals(expectedTask, responseTask, "Returned task is not the one sent")
     }
 
     private fun sendPOSTRequest(task: Task): ResultActions {
@@ -369,18 +374,5 @@ class TaskIntegrationTest {
             .andExpect(status().isNoContent)
             .andExpect(content().string(""))
         assertTrue(taskRepository.existsById(task.id))
-    }
-
-    @Test
-    fun `Include user links in response body`() {
-        val oidcUser = createOidcUser(user)
-        val tasks = taskRepository.findAllByUserId(user.id)
-        mockMvc.perform(
-            get("/tasks").with(oidcLogin().oidcUser(oidcUser))
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType("application/hal+json"))
-            .andExpect(jsonPath("_embedded.taskList[0].user._links.self.href",`is`("http://localhost/user")))
-            .andExpect(jsonPath("_embedded.taskList[0].user._links.user.href",`is`("http://localhost/user")))
     }
 }
