@@ -1,6 +1,5 @@
 package ch.ascendise.todolistapi.checklist
 
-import ch.ascendise.todolistapi.checklisttask.ChecklistTask
 import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
@@ -19,7 +18,7 @@ class ChecklistController(
 ) {
 
     @GetMapping("/checklists")
-    fun getChecklists(@CurrentUser user: User): CollectionModel<Checklist> =
+    fun getChecklists(@CurrentUser user: User): CollectionModel<ChecklistResponseDto> =
         service.getChecklists(user.id)
             .stream()
             .map { modelAssembler.toModel(it) }
@@ -29,7 +28,7 @@ class ChecklistController(
                 linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations")) }
 
     @PostMapping("/checklists")
-    fun create(@CurrentUser user: User, @RequestBody checklist: ChecklistDto): ResponseEntity<Checklist> {
+    fun create(@CurrentUser user: User, @RequestBody checklist: ChecklistRequestDto): ResponseEntity<ChecklistResponseDto> {
         val newChecklist = checklist.toChecklist(user)
             .let { service.create(it) }
             .let { modelAssembler.toModel(it)}
@@ -44,7 +43,7 @@ class ChecklistController(
             .let { modelAssembler.toModel(it) }
 
     @PutMapping("/checklists/{id}")
-    fun update(@PathVariable id: Long, @CurrentUser user: User, @RequestBody dto: ChecklistDto): ResponseEntity<Checklist> {
+    fun update(@PathVariable id: Long, @CurrentUser user: User, @RequestBody dto: ChecklistRequestDto): ResponseEntity<ChecklistResponseDto> {
         val checklist = dto.toChecklist(user)
         checklist.id = id
         val newChecklist = service.update(checklist)

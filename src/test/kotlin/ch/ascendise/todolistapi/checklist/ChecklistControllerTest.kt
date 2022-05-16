@@ -61,11 +61,11 @@ class ChecklistControllerTest {
 
     @Test
     fun `Fetch all checklists of user`() {
-        val expectedChecklists = listOf(
+        val returnedChecklists = listOf(
             Checklist(id = 101, name = "New Checklist1", user = user),
             Checklist(id = 102, name = "New Checklist2", user = user),
             Checklist(id = 103, name = "New Checklist3", user = user))
-        every { checklistService.getChecklists(user.id) } returns expectedChecklists
+        every { checklistService.getChecklists(user.id) } returns returnedChecklists
         val result = mockMvc.perform(
             get("/checklists")
                 .with(oidcLogin().oidcUser(oidcUser))
@@ -74,7 +74,8 @@ class ChecklistControllerTest {
             .andReturn()
         verify { checklistService.getChecklists(user.id) }
         val jsonNode = jackson.readTree(result.response.contentAsString)
-        val checklists: List<Checklist> = jackson.treeToValue(jsonNode.at("/_embedded/checklistList"))
+        val checklists: List<ChecklistResponseDto> = jackson.treeToValue(jsonNode.at("/_embedded/checklists"))
+        val expectedChecklists = returnedChecklists.map { it.toChecklistResponseDto() }.toList()
         assertEquals(expectedChecklists, checklists)
     }
 
@@ -89,21 +90,22 @@ class ChecklistControllerTest {
             .andReturn()
         verify { checklistService.getChecklists(user.id) }
         val node = jackson.readTree(result.response.contentAsString)
-        assertTrue(node.findPath("/_embedded/checklistList").isMissingNode)
+        assertTrue(node.findPath("/_embedded/checklists").isMissingNode)
     }
 
     @Test
     fun `Fetch single checklist`() {
-        val expectedChecklist = Checklist(id = 100, name = "New Checklist", user = user)
-        every { checklistService.getChecklist(expectedChecklist.id, user.id) } returns expectedChecklist
+        val returnedChecklist = Checklist(id = 100, name = "New Checklist", user = user)
+        every { checklistService.getChecklist(returnedChecklist.id, user.id) } returns returnedChecklist
         val result = mockMvc.perform(
-            get("/checklists/${expectedChecklist.id}")
+            get("/checklists/${returnedChecklist.id}")
                 .with(oidcLogin().oidcUser(oidcUser))
         )
             .andExpect(status().isOk)
             .andReturn()
-        verify { checklistService.getChecklist(expectedChecklist.id, user.id) }
-        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
+        verify { checklistService.getChecklist(returnedChecklist.id, user.id) }
+        val checklist: ChecklistResponseDto = jackson.readValue(result.response.contentAsString)
+        val expectedChecklist = returnedChecklist.toChecklistResponseDto()
         assertEquals(expectedChecklist, checklist)
     }
 
@@ -122,9 +124,9 @@ class ChecklistControllerTest {
 
     @Test
     fun `Create new checklist`() {
-        val expectedChecklist = Checklist(id = 101, name = "ReadList", user = user)
+        val returnedChecklist = Checklist(id = 101, name = "ReadList", user = user)
         val checklistJson = "{\"name\":\"ReadList\"}"
-        every { checklistService.create( match { it.name == "ReadList" } ) } returns expectedChecklist
+        every { checklistService.create( match { it.name == "ReadList" } ) } returns returnedChecklist
         val result = mockMvc.perform(
             post("/checklists")
                 .with(oidcLogin().oidcUser(oidcUser))
@@ -135,17 +137,18 @@ class ChecklistControllerTest {
             .andExpect(status().isCreated)
             .andReturn()
         verify { checklistService.create(any()) }
-        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
+        val checklist: ChecklistResponseDto = jackson.readValue(result.response.contentAsString)
+        val expectedChecklist = returnedChecklist.toChecklistResponseDto()
         assertEquals(expectedChecklist, checklist)
     }
 
     @Test
     fun `Update existing checklist`() {
         val checklistJson = "{\"name\":\"DescriptiveNameForCollectionOfTasks\"}"
-        val updatedChecklist = Checklist(id = 101, name = "DescriptiveNameForCollectionOfTasks", user = user)
+        val returnedChecklist = Checklist(id = 101, name = "DescriptiveNameForCollectionOfTasks", user = user)
         every {
             checklistService.update(match { it.name == "DescriptiveNameForCollectionOfTasks" })
-        } returns updatedChecklist
+        } returns returnedChecklist
         val result = mockMvc.perform(
             put("/checklists/1")
                 .with(oidcLogin().oidcUser(oidcUser))
@@ -156,8 +159,9 @@ class ChecklistControllerTest {
             .andExpect(status().isOk)
             .andReturn()
         verify { checklistService.update(any()) }
-        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
-        assertEquals(updatedChecklist, checklist)
+        val checklist: ChecklistResponseDto = jackson.readValue(result.response.contentAsString)
+        val expectedChecklist = returnedChecklist.toChecklistResponseDto()
+        assertEquals(expectedChecklist, checklist)
     }
 
     @Test
@@ -207,14 +211,12 @@ class ChecklistControllerTest {
             .andExpect(content().contentType("application/hal+json"))
             .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists")))
             .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("_embedded.checklistList[0]._links.self.href", Is.`is`("http://localhost/checklists/101")))
-            .andExpect(jsonPath("_embedded.checklistList[0]._links.checklists.href", Is.`is`("http://localhost/checklists")))
-            .andExpect(jsonPath("_embedded.checklistList[0]._links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("_embedded.checklistList[0].user._links.self.href", Is.`is`("http://localhost/user")))
-            .andExpect(jsonPath("_embedded.checklistList[0].user._links.user.href", Is.`is`("http://localhost/user")))
-            .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
-            .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
-            .andExpect(jsonPath("_embedded.checklistList[0].tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
+            .andExpect(jsonPath("_embedded.checklists[0]._links.self.href", Is.`is`("http://localhost/checklists/101")))
+            .andExpect(jsonPath("_embedded.checklists[0]._links.checklists.href", Is.`is`("http://localhost/checklists")))
+            .andExpect(jsonPath("_embedded.checklists[0]._links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(jsonPath("_embedded.checklists[0].tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
+            .andExpect(jsonPath("_embedded.checklists[0].tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
+            .andExpect(jsonPath("_embedded.checklists[0].tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
             .andReturn()
     }
 
@@ -233,8 +235,6 @@ class ChecklistControllerTest {
             .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
             .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
             .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("user._links.self.href", Is.`is`("http://localhost/user")))
-            .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
             .andExpect(jsonPath("tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
             .andExpect(jsonPath("tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
             .andExpect(jsonPath("tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
@@ -260,8 +260,6 @@ class ChecklistControllerTest {
             .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
             .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
             .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("user._links.self.href", Is.`is`("http://localhost/user")))
-            .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
             .andReturn()
     }
 
@@ -284,8 +282,6 @@ class ChecklistControllerTest {
             .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
             .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
             .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("user._links.self.href", Is.`is`("http://localhost/user")))
-            .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
             .andReturn()
     }
 }

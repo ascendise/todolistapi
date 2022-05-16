@@ -11,7 +11,7 @@ class Checklist(
     var name: String,
     @ManyToMany(targetEntity = Task::class) var tasks: MutableList<Task> = mutableListOf(),
     @ManyToOne var user: User
-): RepresentationModel<Checklist>() {
+){
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

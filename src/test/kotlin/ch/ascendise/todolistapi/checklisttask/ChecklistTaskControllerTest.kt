@@ -1,6 +1,8 @@
 package ch.ascendise.todolistapi.checklisttask
 
 import ch.ascendise.todolistapi.checklist.Checklist
+import ch.ascendise.todolistapi.checklist.ChecklistResponseDto
+import ch.ascendise.todolistapi.checklist.toChecklistResponseDto
 import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserService
@@ -11,9 +13,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import io.mockk.justRun
 import io.mockk.verify
-import org.aspectj.lang.annotation.Before
 import org.hamcrest.core.Is
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -28,10 +28,8 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.net.URI
-import kotlin.math.exp
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -93,14 +91,14 @@ class ChecklistTaskControllerTest {
     @Test
     fun `Add task to checklist`() {
         val checklistTaskJson = "{\"checklistId\":301,\"taskId\":201}"
-        val expectedChecklist = Checklist(
+        val returnedChecklist = Checklist(
             id = 301, name = "Checklist", user = user, tasks = mutableListOf(
                 Task(id = 201, name = "Task", user = user)
             )
         )
         every {
             service.addTask(ChecklistTask(301, 201, 100))
-        } returns expectedChecklist
+        } returns returnedChecklist
         val result = mockMvc.perform(
             put("/checklists/tasks")
                 .with(oidcLogin().oidcUser(oidcUser))
@@ -110,11 +108,12 @@ class ChecklistTaskControllerTest {
         )
             .andExpect(status().isOk)
             .andReturn()
-        val checklist: Checklist = jackson.readValue(result.response.contentAsString)
+        val checklist: ChecklistResponseDto = jackson.readValue(result.response.contentAsString)
         verify {
             service.addTask(ChecklistTask(301, 201, user.id))
-            assertEquals(expectedChecklist, checklist)
         }
+        val expectedChecklist = returnedChecklist.toChecklistResponseDto()
+        assertEquals(expectedChecklist, checklist)
     }
 
     @Test
@@ -181,8 +180,6 @@ class ChecklistTaskControllerTest {
             .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/301")))
             .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
             .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("user._links.self.href", Is.`is`("http://localhost/user")))
-            .andExpect(jsonPath("user._links.user.href", Is.`is`("http://localhost/user")))
             .andExpect(jsonPath("tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
             .andExpect(jsonPath("tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
             .andExpect(jsonPath("tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/301/tasks/201")))

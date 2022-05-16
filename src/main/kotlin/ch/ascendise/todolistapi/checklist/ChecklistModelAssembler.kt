@@ -8,26 +8,27 @@ import org.springframework.hateoas.server.RepresentationModelAssembler
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.stereotype.Component
 import java.util.stream.Collectors
-
 @Component
 class ChecklistModelAssembler(
     val taskModelAssembler: TaskModelAssembler,
     val userModelAssembler: UserModelAssembler
-): RepresentationModelAssembler<Checklist, Checklist> {
+): RepresentationModelAssembler<Checklist, ChecklistResponseDto> {
 
-    override fun toModel(checklist: Checklist): Checklist {
-        checklist.add(
+    override fun toModel(checklist: Checklist): ChecklistResponseDto {
+        val checklistDto = checklist.toChecklistResponseDto()
+        checklistDto.add(
             linkTo<ChecklistController> { getChecklist(checklist.id, checklist.user) }.withSelfRel(),
             linkTo<ChecklistController> { getChecklists(checklist.user) }.withRel("checklists"),
             linkTo<ChecklistTaskController> { getRelations(checklist.user) }.withRel("relations")
         )
-        checklist.tasks.stream()
+        checklistDto.tasks.stream()
             .map { taskModelAssembler.toModel(it) }
-            .map { it.add(linkTo<ChecklistTaskController> {
-                removeRelation(checklist.user, checklist.id, it.id)}.withRel("removeTask")) }
+            .map {
+                it.add(linkTo<ChecklistTaskController> {
+                    removeRelation(checklist.user, checklist.id, it.id)
+                }.withRel("removeTask"))
+            }
             .collect(Collectors.toList())
-        checklist.user = userModelAssembler.toModel(User(checklist.user))
-        return checklist
+        return checklistDto
     }
-
 }
