@@ -14,7 +14,7 @@ class Task (
     var endDate: LocalDate? = null,
     var isDone: Boolean = false,
     @ManyToOne var user: User
-        ): RepresentationModel<Task>(){
+    ) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -39,7 +39,7 @@ class Task (
         result = 31 * result + description.hashCode()
         result = 31 * result + startDate.hashCode()
         result = 31 * result + (endDate?.hashCode() ?: 0)
-        result = 31 * result + (isDone?.hashCode() ?: 0)
+        result = 31 * result + (isDone.hashCode())
         result = 31 * result + user.hashCode()
         return result
     }

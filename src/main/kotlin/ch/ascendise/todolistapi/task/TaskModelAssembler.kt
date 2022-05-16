@@ -1,22 +1,25 @@
 package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.user.User
-import ch.ascendise.todolistapi.user.UserModelAssembler
-import org.springframework.hateoas.EntityModel
 import org.springframework.hateoas.server.RepresentationModelAssembler
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.stereotype.Component
 
 @Component
-class TaskModelAssembler(
-    val userModelAssembler: UserModelAssembler
-) : RepresentationModelAssembler<Task, Task> {
+class TaskModelAssembler() : RepresentationModelAssembler<Task, TaskResponseDto> {
 
-    override fun toModel(task: Task): Task {
-        task.add(linkTo<TaskController> {getTask(task.user, task.id)}.withSelfRel())
-        task.add(linkTo<TaskController> {getTasks(task.user)}.withRel("tasks"))
-        task.user = userModelAssembler.toModel(User(task.user))
-        return task
+    override fun toModel(task: Task): TaskResponseDto {
+        val taskDto = task.toTaskResponseDto()
+        taskDto.add(linkTo<TaskController> {getTask(task.user, task.id)}.withSelfRel())
+        taskDto.add(linkTo<TaskController> {getTasks(task.user)}.withRel("tasks"))
+        return taskDto
+    }
+
+    fun toModel(taskDto: TaskResponseDto, user: User): TaskResponseDto {
+        val task = taskDto.toTask(user)
+        val taskDtoWithLinks = toModel(task)
+        taskDto.add(taskDtoWithLinks.links)
+        return taskDto
     }
 
 

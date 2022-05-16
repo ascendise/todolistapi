@@ -10,8 +10,7 @@ import org.springframework.stereotype.Component
 import java.util.stream.Collectors
 @Component
 class ChecklistModelAssembler(
-    val taskModelAssembler: TaskModelAssembler,
-    val userModelAssembler: UserModelAssembler
+    val taskModelAssembler: TaskModelAssembler
 ): RepresentationModelAssembler<Checklist, ChecklistResponseDto> {
 
     override fun toModel(checklist: Checklist): ChecklistResponseDto {
@@ -22,7 +21,7 @@ class ChecklistModelAssembler(
             linkTo<ChecklistTaskController> { getRelations(checklist.user) }.withRel("relations")
         )
         checklistDto.tasks.stream()
-            .map { taskModelAssembler.toModel(it) }
+            .map { taskModelAssembler.toModel(it, checklist.user) }
             .map {
                 it.add(linkTo<ChecklistTaskController> {
                     removeRelation(checklist.user, checklist.id, it.id)

@@ -3,7 +3,7 @@ package ch.ascendise.todolistapi.task
 import ch.ascendise.todolistapi.user.User
 import java.time.LocalDate
 
-data class TaskDto(
+data class TaskRequestDto(
     val name: String,
     val description: String,
     val startDate: LocalDate = LocalDate.now(),

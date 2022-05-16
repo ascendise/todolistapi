@@ -4,7 +4,6 @@ import ch.ascendise.todolistapi.ApiError
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
 import org.springframework.hateoas.CollectionModel
-import org.springframework.hateoas.EntityModel
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -20,7 +19,7 @@ class TaskController(
 ) {
 
     @GetMapping("/tasks")
-    fun getTasks(@CurrentUser user: User): CollectionModel<Task> {
+    fun getTasks(@CurrentUser user: User): CollectionModel<TaskResponseDto> {
         val tasks = taskService.getAll(user.id).stream()
             .map { taskModelAssembler.toModel(it) }
             .collect(Collectors.toList())
@@ -29,12 +28,12 @@ class TaskController(
     }
 
     @GetMapping("/tasks/{id}")
-    fun getTask(@CurrentUser user: User, @PathVariable id: Long): Task =
+    fun getTask(@CurrentUser user: User, @PathVariable id: Long): TaskResponseDto =
         taskService.getById(user.id, id)
             .let { taskModelAssembler.toModel(it) }
 
     @PostMapping("/tasks")
-    fun createTask(@CurrentUser user: User, @RequestBody taskDto: TaskDto): ResponseEntity<Task>
+    fun createTask(@CurrentUser user: User, @RequestBody taskDto: TaskRequestDto): ResponseEntity<TaskResponseDto>
     {
         val task = taskDto.toTask(user)
         val responseBody = taskService.create(task)
@@ -45,7 +44,7 @@ class TaskController(
     }
 
     @PutMapping("/tasks/{id}")
-    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody taskDto: TaskDto): ResponseEntity<Task>
+    fun putTask(@CurrentUser user: User, @PathVariable id: Long, @RequestBody taskDto: TaskRequestDto): ResponseEntity<TaskResponseDto>
     {
         val task = taskDto.toTask(user)
         task.id = id
@@ -57,7 +56,7 @@ class TaskController(
     }
 
     @DeleteMapping("/tasks/{id}")
-    fun deleteTask(@CurrentUser user: User, @PathVariable id: Long): ResponseEntity<Task>
+    fun deleteTask(@CurrentUser user: User, @PathVariable id: Long): ResponseEntity<TaskResponseDto>
     {
         taskService.delete(taskId = id, userId = user.id)
         return ResponseEntity
