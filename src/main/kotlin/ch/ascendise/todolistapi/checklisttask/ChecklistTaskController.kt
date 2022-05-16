@@ -44,8 +44,16 @@ class ChecklistTaskController(
     @ResponseBody
     @ExceptionHandler(TaskNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    fun checklistNotFoundException(): ResponseEntity<Any> =
+    fun taskNotFoundException(): ResponseEntity<Any> =
         ResponseEntity
             .status(HttpStatus.NOT_FOUND)
             .body(ApiError(statusCode = 404, name = "Not Found", description = "Task could not be found"))
+
+    @ResponseBody
+    @ExceptionHandler(ChecklistNotFoundException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    fun checklistNotFoundException(): ResponseEntity<Any> =
+        ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(ApiError(statusCode = 404, name = "Not Found", description = "Checklist could not be found"))
 }
