@@ -1,0 +1,19 @@
+name: Build and publish Docker image
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubunutu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build image
+        run: docker build . -t ${{DOCKER_USERNAME}}/todolistapi
+      - name: Login to Docker
+        run: docker login -u ${{DOCKER_USERNAME}} --password ${{DOCKER_PASSWORD}}
+      - name: Push image
+        run: docker push ${{DOCKER_USERNAME}}/todolistapi:${{ github.event.release.tag_name }}
+      - name: Be happy that everything worked
+        run: echo Woohoo!
