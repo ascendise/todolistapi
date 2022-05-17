@@ -7,7 +7,8 @@ data class TaskRequestDto(
     val name: String,
     val description: String,
     val startDate: LocalDate = LocalDate.now(),
-    val endDate: LocalDate?
+    val endDate: LocalDate?,
+    val isDone: Boolean
     ) {
 
     fun toTask(user: User): Task = Task(
@@ -15,6 +16,7 @@ data class TaskRequestDto(
             description = this.description,
             startDate = this.startDate,
             endDate = this.endDate,
+            isDone = this.isDone,
             user = user
         )
 }
