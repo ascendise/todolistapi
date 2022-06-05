@@ -15,7 +15,7 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
         http
             .csrf{ it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) }
             .authorizeRequests{
-                it.antMatchers("/login").permitAll()
+                it.antMatchers("/", "/login").permitAll()
                 .anyRequest().authenticated()
             }
             .exceptionHandling{

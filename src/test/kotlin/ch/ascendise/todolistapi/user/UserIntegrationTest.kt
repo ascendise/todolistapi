@@ -35,7 +35,7 @@ class UserIntegrationTest() {
     @Test
     fun `Get redirected to Google OAuth2`()
     {
-        mockMvc.perform(get("/oauth2/authorization/google"))
+        mockMvc.perform(get("/login/google"))
             .andExpect(status().is3xxRedirection)
     }
 
@@ -43,7 +43,7 @@ class UserIntegrationTest() {
     @WithAnonymousUser()
     fun `Return 404 if not authorized`()
     {
-        mockMvc.perform(get("/"))
+        mockMvc.perform(get("/user"))
             .andExpect(status().isNotFound)
     }
 
