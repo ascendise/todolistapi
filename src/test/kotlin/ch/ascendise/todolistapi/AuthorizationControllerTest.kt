@@ -22,12 +22,18 @@ class AuthorizationControllerTest {
 
     @Test
     @WithAnonymousUser
-    fun `Return all available oauth2 providers for login`()
-    {
+    fun `Return all available oauth2 providers for login`(){
         mockMvc.perform(get("/login"))
             .andExpect(status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType("application/hal+json"))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.google.href", Is.`is`("http://localhost/login/google")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.self.href", Is.`is`("http://localhost/login")))
+    }
+
+    @Test
+    @WithAnonymousUser
+    fun `Login redirects to oauth2 provider`(){
+        mockMvc.perform(get("/login/google"))
+            .andExpect(status().is3xxRedirection)
     }
 }

@@ -21,6 +21,8 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
             .exceptionHandling{
                 it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.NOT_FOUND))
             }
-            .oauth2Login()
+            .oauth2Login{ oauth2 ->
+                oauth2.authorizationEndpoint {it.baseUri("/login")}
+            }
     }
 }
