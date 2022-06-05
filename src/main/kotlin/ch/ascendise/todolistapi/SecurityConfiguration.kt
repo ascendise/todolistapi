@@ -13,9 +13,12 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
     protected override fun configure(http: HttpSecurity)
     {
         http
-            .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            .and().authorizeRequests().anyRequest().authenticated()
-            .and().exceptionHandling{
+            .csrf{ it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) }
+            .authorizeRequests{
+                it.antMatchers("/login").permitAll()
+                .anyRequest().authenticated()
+            }
+            .exceptionHandling{
                 it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.NOT_FOUND))
             }
             .oauth2Login()
