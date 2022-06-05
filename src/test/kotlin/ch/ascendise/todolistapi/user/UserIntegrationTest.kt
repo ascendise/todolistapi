@@ -41,18 +41,18 @@ class UserIntegrationTest() {
 
     @Test
     @WithAnonymousUser()
-    fun `Get redirected when not authenticated`()
+    fun `Return 404 if not authorized`()
     {
         mockMvc.perform(get("/"))
-            .andExpect(status().is3xxRedirection)
+            .andExpect(status().isNotFound)
     }
 
     @Test
     @WithAnonymousUser()
-    fun `Get redirected for authentication when trying to access user`()
+    fun `Return 404 when trying to access user that doesn't exist`()
     {
         mockMvc.perform(get("/user"))
-            .andExpect(status().is3xxRedirection)
+            .andExpect(status().isNotFound)
     }
 
     @Test
