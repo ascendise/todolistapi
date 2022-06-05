@@ -10,7 +10,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository
 @Configuration
 class SecurityConfiguration : WebSecurityConfigurerAdapter() {
 
-    protected override fun configure(http: HttpSecurity)
+    override fun configure(http: HttpSecurity)
     {
         http
             .csrf{ it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) }
@@ -23,6 +23,12 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
             }
             .oauth2Login{ oauth2 ->
                 oauth2.authorizationEndpoint {it.baseUri("/login")}
+            }
+            .logout {
+                it.invalidateHttpSession(true)
+                it.clearAuthentication(true)
+                it.logoutUrl("/logout")
+                it.logoutSuccessUrl("/login")
             }
     }
 }
