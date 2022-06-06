@@ -4,7 +4,6 @@ import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserService
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import org.hamcrest.core.Is
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,7 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
@@ -58,6 +56,8 @@ class HomeControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("_links.tasks.href", Is.`is`("http://localhost/tasks")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(MockMvcResultMatchers.jsonPath("_links.login.href", Is.`is`("http://localhost/login")))
+            .andExpect(MockMvcResultMatchers.jsonPath("_links.logout.href", Is.`is`("http://localhost/logout")))
     }
 
 }

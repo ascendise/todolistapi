@@ -67,9 +67,9 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Redirect for authentication if not logged in`() {
+    fun `Return 404 if not authorized`() {
         mockMvc.perform(get("/tasks"))
-            .andExpect(status().is3xxRedirection)
+            .andExpect(status().isNotFound)
     }
 
     @Test
