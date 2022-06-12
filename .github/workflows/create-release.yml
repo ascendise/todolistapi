@@ -37,24 +37,6 @@ jobs:
           tag: 'v${{env.version}}'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  release-latest:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Download jar
-        uses: actions/download-artifact@v3
-        with:
-          name: jar
-      - name: Create 'latest' release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: true
-          artifacts: "todolistapi.jar"
-          name: "TodolistApi Latest Build"
-          generateReleaseNotes: true
-          commit: "main"
-          tag: "latest"
-          token: ${{ secrets.WORKFLOW_ACCESS_TOKEN }}
   release-version:
     if: needs.build.outputs.version == 'false'
     runs-on: ubuntu-latest
