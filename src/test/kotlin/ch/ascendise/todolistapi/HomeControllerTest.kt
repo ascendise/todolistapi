@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.junit.jupiter.api.Test
+import org.springframework.security.test.context.support.WithAnonymousUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 
 @SpringBootTest
@@ -58,6 +59,20 @@ class HomeControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.login.href", Is.`is`("http://localhost/login")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.logout.href", Is.`is`("http://localhost/logout")))
+    }
+
+    @Test
+    @WithAnonymousUser
+    fun `Return available links for anonymous user`()
+    {
+        mockMvc.perform(
+            MockMvcRequestBuilders.get("/")
+                .with(oidcLogin().oidcUser(oidcUser))
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType("application/hal+json"))
+            .andExpect(MockMvcResultMatchers.jsonPath("_links.login.href", Is.`is`("http://localhost/login"))
+            )
     }
 
 }
