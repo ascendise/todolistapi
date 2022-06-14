@@ -1,6 +1,5 @@
 package ch.ascendise.todolistapi.user
 
-import org.springframework.hateoas.EntityModel
 import org.springframework.hateoas.server.RepresentationModelAssembler
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.stereotype.Component

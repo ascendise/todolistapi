@@ -1,4 +1,3 @@
 package ch.ascendise.todolistapi.task
 
-class TaskNotFoundException : RuntimeException() {
-}
+class TaskNotFoundException : RuntimeException()

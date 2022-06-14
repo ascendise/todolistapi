@@ -16,10 +16,9 @@ class AuthorizationController(
 
     @GetMapping("/login")
     fun login(): EntityModel<DummyResponse>{
-        val baseUri = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+        val baseUri = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
         val links = mutableListOf<Link>()
         clientRegistrationRepository.forEach {
-            val provider = it.providerDetails
             val link = Link.of(UriTemplate.of("$baseUri/login/${it.registrationId}"), it.registrationId)
             links.add(link)
         }
@@ -27,6 +26,6 @@ class AuthorizationController(
         return EntityModel.of(DummyResponse(), links)
     }
 
-    class DummyResponse {}
+    class DummyResponse
 }
 

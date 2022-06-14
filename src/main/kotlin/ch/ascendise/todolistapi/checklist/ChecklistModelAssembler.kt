@@ -2,12 +2,11 @@ package ch.ascendise.todolistapi.checklist
 
 import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.task.TaskModelAssembler
-import ch.ascendise.todolistapi.user.User
-import ch.ascendise.todolistapi.user.UserModelAssembler
 import org.springframework.hateoas.server.RepresentationModelAssembler
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.stereotype.Component
 import java.util.stream.Collectors
+
 @Component
 class ChecklistModelAssembler(
     val taskModelAssembler: TaskModelAssembler

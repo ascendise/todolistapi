@@ -3,15 +3,11 @@ package ch.ascendise.todolistapi
 import ch.ascendise.todolistapi.checklist.ChecklistController
 import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.task.TaskController
-import ch.ascendise.todolistapi.user.CurrentUser
-import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserService
 import org.springframework.hateoas.EntityModel
 import org.springframework.hateoas.Link
 import org.springframework.hateoas.server.mvc.linkTo
-import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
@@ -21,12 +17,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 class HomeController(
     val userService: UserService
 ) {
-
-    fun getLinksForAnonymousUser(): EntityModel<Response> {
-        return EntityModel.of(Response(),
-            linkTo<AuthorizationController> { login() }.withRel("login"),
-        )
-    }
 
     @GetMapping("/")
     fun getLinks(authentication: Authentication?): EntityModel<Response> {

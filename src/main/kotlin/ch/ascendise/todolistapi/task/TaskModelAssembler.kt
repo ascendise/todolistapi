@@ -6,7 +6,7 @@ import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.stereotype.Component
 
 @Component
-class TaskModelAssembler() : RepresentationModelAssembler<Task, TaskResponseDto> {
+class TaskModelAssembler : RepresentationModelAssembler<Task, TaskResponseDto> {
 
     override fun toModel(task: Task): TaskResponseDto {
         val taskDto = task.toTaskResponseDto()

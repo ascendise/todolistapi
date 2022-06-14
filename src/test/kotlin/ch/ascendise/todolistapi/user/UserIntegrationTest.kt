@@ -24,7 +24,7 @@ import javax.transaction.Transactional
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class UserIntegrationTest() {
+class UserIntegrationTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -40,7 +40,7 @@ class UserIntegrationTest() {
     }
 
     @Test
-    @WithAnonymousUser()
+    @WithAnonymousUser
     fun `Return 404 if not authorized`()
     {
         mockMvc.perform(get("/user"))
@@ -48,7 +48,7 @@ class UserIntegrationTest() {
     }
 
     @Test
-    @WithAnonymousUser()
+    @WithAnonymousUser
     fun `Return 404 when trying to access user that doesn't exist`()
     {
         mockMvc.perform(get("/user"))

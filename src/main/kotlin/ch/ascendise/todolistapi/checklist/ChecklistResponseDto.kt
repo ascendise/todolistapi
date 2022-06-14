@@ -1,6 +1,5 @@
 package ch.ascendise.todolistapi.checklist
 
-import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.task.TaskResponseDto
 import ch.ascendise.todolistapi.task.toTaskResponseDto
 import org.springframework.hateoas.RepresentationModel
@@ -11,9 +10,7 @@ open class ChecklistResponseDto(
     var id: Long = 0,
     var name: String,
     var tasks: MutableList<TaskResponseDto> = mutableListOf()
-) : RepresentationModel<ChecklistResponseDto>() {
-
-}
+) : RepresentationModel<ChecklistResponseDto>()
 
 fun Checklist.toChecklistResponseDto() =
     ChecklistResponseDto(

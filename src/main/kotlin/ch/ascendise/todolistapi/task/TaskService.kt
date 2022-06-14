@@ -1,6 +1,5 @@
 package ch.ascendise.todolistapi.task
 
-import ch.ascendise.todolistapi.user.User
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 

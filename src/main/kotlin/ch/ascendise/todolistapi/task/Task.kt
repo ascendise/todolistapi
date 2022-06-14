@@ -1,7 +1,6 @@
 package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.user.User
-import org.springframework.hateoas.RepresentationModel
 import java.time.LocalDate
 import javax.persistence.*
 

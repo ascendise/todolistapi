@@ -1,19 +1,17 @@
 package ch.ascendise.todolistapi.checklisttask
 
 import ch.ascendise.todolistapi.checklist.Checklist
-import ch.ascendise.todolistapi.checklist.ChecklistRepository
 import ch.ascendise.todolistapi.checklist.ChecklistService
 import ch.ascendise.todolistapi.task.Task
-import ch.ascendise.todolistapi.task.TaskRepository
 import ch.ascendise.todolistapi.task.TaskService
 import ch.ascendise.todolistapi.user.User
-import org.springframework.boot.test.context.SpringBootTest
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
 class ChecklistTaskServiceTest {

@@ -1,8 +1,7 @@
 package ch.ascendise.todolistapi.checklist
 
-import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.task.Task
-import org.springframework.hateoas.RepresentationModel
+import ch.ascendise.todolistapi.user.User
 import javax.persistence.*
 
 @Entity
