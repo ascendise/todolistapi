@@ -63,6 +63,13 @@ spring.datasource.password={your-mysql-password}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.output.ansi.enabled=DETECT #Optional
 ```
+## Cross-Origin Resource Sharing (CORS)
+By default, the API allows any origin. You can specify only specific origins by setting the following property in application.properties
+
+```
+allowedOriginPatterns=https://example.com,https://example2.com
+```
+Make sure to not have any spaces behind commas. You can also use wildcards in the properties.
 
 ## API-Documentation
 The documentation for the API is a Swagger-page located at {your-url}/swagger-ui-custom.html
