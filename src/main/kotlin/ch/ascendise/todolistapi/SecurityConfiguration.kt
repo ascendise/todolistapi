@@ -1,5 +1,6 @@
 package ch.ascendise.todolistapi
 
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpStatus
@@ -14,6 +15,9 @@ import org.springframework.web.filter.CorsFilter
 
 @Configuration
 class SecurityConfiguration : WebSecurityConfigurerAdapter() {
+
+    @Autowired
+    private lateinit var appConfig: ApplicationConfig
 
     override fun configure(http: HttpSecurity)
     {
@@ -43,7 +47,7 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
         val source = UrlBasedCorsConfigurationSource()
         val config = CorsConfiguration()
         config.allowCredentials = true
-        config.allowedOriginPatterns = listOf("*")
+        config.allowedOriginPatterns = appConfig.allowedOriginPatterns.split(",")
         config.allowedHeaders = listOf("*")
         config.allowedMethods = listOf("*")
         source.registerCorsConfiguration("/**", config)
