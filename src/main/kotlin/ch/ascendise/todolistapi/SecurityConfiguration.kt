@@ -31,15 +31,7 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
             .exceptionHandling{
                 it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.NOT_FOUND))
             }
-            .oauth2Login{ oauth2 ->
-                oauth2.authorizationEndpoint {it.baseUri("/login")}
-            }
-            .logout {
-                it.invalidateHttpSession(true)
-                it.clearAuthentication(true)
-                it.logoutUrl("/logout")
-                it.logoutSuccessUrl("/login")
-            }
+            .oauth2ResourceServer { it.jwt() }
     }
 
     @Bean
