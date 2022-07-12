@@ -4,6 +4,7 @@ import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserService
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import org.hamcrest.core.Is
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,7 +17,10 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.junit.jupiter.api.Test
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.context.support.WithAnonymousUser
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
 
 @SpringBootTest
@@ -28,13 +32,8 @@ class HomeControllerTest {
 
     private val user = User(id = 100, username = "user", email = "mail@domain.com")
 
-    private val oidcUser = DefaultOidcUser(
-        AuthorityUtils.createAuthorityList("SCOPE_message:read", "SCOPE_message:write"),
-        OidcIdToken.withTokenValue("id-token")
-            .claim("sub", "12345")
-            .claim("email", user.email)
-            .claim("given_name", user.username)
-            .build())
+    @MockK
+    private lateinit var jwt: Jwt
 
     @MockkBean
     private lateinit var userService: UserService
@@ -42,7 +41,9 @@ class HomeControllerTest {
     @BeforeEach
     fun setUp()
     {
-        every { userService.getUser(oidcUser) }.returns(user)
+        every { jwt.getClaimAsString("email") }.returns(user.email)
+        every { jwt.getClaimAsString("given_name") }.returns(user.username)
+        every { userService.getUser(jwt) }.returns(user)
     }
 
     @Test
@@ -50,7 +51,7 @@ class HomeControllerTest {
     {
         mockMvc.perform(
             MockMvcRequestBuilders.get("/")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType("application/hal+json"))
@@ -67,7 +68,7 @@ class HomeControllerTest {
     {
         mockMvc.perform(
             MockMvcRequestBuilders.get("/")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
         )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType("application/hal+json"))

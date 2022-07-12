@@ -9,6 +9,7 @@ import org.springframework.hateoas.Link
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
@@ -21,7 +22,7 @@ class HomeController(
     @GetMapping("/")
     fun getLinks(authentication: Authentication?): EntityModel<Response> {
         val principal = authentication?.principal
-        return if(principal is OidcUser) {
+        return if(principal is Jwt) {
             val user = userService.getUser(principal)
             val baseUri = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString()
             EntityModel.of(Response(),
