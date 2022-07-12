@@ -44,8 +44,8 @@ class TaskIntegrationTest {
 
     private lateinit var jackson: ObjectMapper
 
-    private val user = User(username = "Reanu Keeves", email = "mail@domain.com")
-    private val otherUser = User(username = "AidenPierce", email = "Hackzr@yahoo.com")
+    private val user = User(username = "Reanu Keeves", subject = "auth-oauth2|123451234512345")
+    private val otherUser = User(username = "AidenPierce", subject = "auth-oauth2|543215432154321")
     private val tasks = setOf(Task(name = "Buy bread", description = "Wholegrain", user = user),
         Task(name = "Do Taxes", startDate = LocalDate.now(), endDate = LocalDate.now().plusDays(30), user = user)
     )
@@ -93,7 +93,7 @@ class TaskIntegrationTest {
         AuthorityUtils.createAuthorityList("SCOPE_message:read", "SCOPE_message:write"),
         OidcIdToken.withTokenValue("id-token")
             .claim("sub", "12345")
-            .claim("email", user.email)
+            .claim("auth-oauth2|123451234512345", user.subject)
             .claim("given_name", user.username)
             .build()
     )

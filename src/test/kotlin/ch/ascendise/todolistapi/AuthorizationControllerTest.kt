@@ -26,13 +26,13 @@ class AuthorizationControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
-    private val user = User(id = 100, username = "user", email = "mail@domain.com")
+    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
 
     private val oidcUser = DefaultOidcUser(
         AuthorityUtils.createAuthorityList("SCOPE_message:read", "SCOPE_message:write"),
         OidcIdToken.withTokenValue("id-token")
             .claim("sub", "12345")
-            .claim("email", user.email)
+            .claim("email", user.subject)
             .claim("given_name", user.username)
             .build())
 

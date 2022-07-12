@@ -57,7 +57,7 @@ class UserIntegrationTest {
 
     @Test
     fun `Show info of current user`() {
-        val expectedUser = User(email = "maxmuster@mail.com", username = "Max Muster")
+        val expectedUser = User(subject = "auth-oauth2|123451234512345", username = "Max Muster")
         userRepository.save(expectedUser)
         val oidcUser = createOidcUser(expectedUser)
         val result = mockMvc.perform(
@@ -65,7 +65,7 @@ class UserIntegrationTest {
         )
             .andExpect(status().is2xxSuccessful)
             .andReturn().response.contentAsString
-        assertAll({result.contains(expectedUser.email)},
+        assertAll({result.contains(expectedUser.subject)},
             {result.contains(expectedUser.username)},
             {result.contains(expectedUser.id.toString())})
     }
@@ -74,14 +74,14 @@ class UserIntegrationTest {
         AuthorityUtils.createAuthorityList("SCOPE_message:read", "SCOPE_message:write"),
         OidcIdToken.withTokenValue("id-token")
             .claim("sub", "12345")
-            .claim("email", user.email)
+            .claim("email", user.subject)
             .claim("given_name", user.username)
             .build()
     )
 
     @Test
     fun `Delete user`() {
-        val user = User(email=  "email", username = "name")
+        val user = User(subject=  "auth-oauth2|123451234512345", username = "name")
         userRepository.save(user)
         val oidcUser = createOidcUser(user)
         mockMvc.perform(
@@ -94,7 +94,7 @@ class UserIntegrationTest {
 
     @Test
     fun `Deleting user does not have a response body`() {
-        val user = User(email = "email", username = "name")
+        val user = User(subject = "auth-oauth2|123451234512345", username = "name")
         userRepository.save(user)
         val oidcUser = createOidcUser(user)
         val result = mockMvc.perform(
@@ -108,7 +108,7 @@ class UserIntegrationTest {
 
     @Test
     fun `Show available operations for user`() {
-        val expectedUser = User(email = "maxmuster@mail.com", username = "Max Muster")
+        val expectedUser = User(subject = "auth-oauth2|123451234512345", username = "Max Muster")
         userRepository.save(expectedUser)
         val oidcUser = createOidcUser(expectedUser)
         mockMvc.perform(

@@ -9,7 +9,7 @@ class UserService(
 ) {
 
     fun getUser(jwt: Jwt) =
-        userRepository.findByEmail(jwt.getClaimAsString("email"))
+        userRepository.findBySubject(jwt.subject)
 
     fun delete(user: User) {
         userRepository.delete(user)

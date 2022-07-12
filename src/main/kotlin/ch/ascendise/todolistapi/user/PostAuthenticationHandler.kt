@@ -13,15 +13,15 @@ class PostAuthenticationHandler(
     override fun onApplicationEvent(event: AuthenticationSuccessEvent) {
         val jwt = event.authentication.principal as Jwt
         val user = getUserInfo(jwt)
-        if(!userRepository.existsByEmail(user.email))
+        if(!userRepository.existsBySubject(user.subject))
         {
             userRepository.save(user)
         }
     }
 
     private fun getUserInfo(jwt: Jwt) = User(
-        username = jwt.getClaimAsString("given_name"),
-        email = jwt.getClaimAsString("email"),
+        username = jwt.getClaimAsString("name"),
+        subject = jwt.subject,
     )
 
 }

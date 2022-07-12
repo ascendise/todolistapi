@@ -54,11 +54,11 @@ class ChecklistTaskControllerTest {
         .registerModule(JavaTimeModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-    private val user = User(id = 100, username = "user", email = "mail@domain.com")
+    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
 
     @BeforeEach
     fun setUp() {
-        every { jwt.getClaimAsString("email") }.returns(user.email)
+        every { jwt.subject }.returns(user.subject)
         every { jwt.getClaimAsString("given_name") }.returns(user.username)
         every { userService.getUser(jwt) } returns user
     }

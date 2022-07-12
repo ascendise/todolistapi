@@ -25,7 +25,7 @@ class ChecklistTaskServiceTest {
     @MockkBean
     private lateinit var checklistService: ChecklistService
 
-    private val user = User(id = 100, username = "User", email = "mail@domain.com")
+    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
 
     @Test
     fun `Add task to checklist`() {
