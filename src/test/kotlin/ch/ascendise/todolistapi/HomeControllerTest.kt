@@ -43,6 +43,8 @@ class HomeControllerTest {
     {
         every { jwt.subject }.returns(user.subject)
         every { jwt.getClaimAsString("given_name") }.returns(user.username)
+        every { jwt.hasClaim(any())}.answers { callOriginal() }
+        every { jwt.claims}.returns(mapOf( "name" to user.username, "sub" to user.subject))
         every { userService.getUser(jwt) }.returns(user)
     }
 
@@ -58,22 +60,16 @@ class HomeControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("_links.tasks.href", Is.`is`("http://localhost/tasks")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(MockMvcResultMatchers.jsonPath("_links.login.href", Is.`is`("http://localhost/login")))
-            .andExpect(MockMvcResultMatchers.jsonPath("_links.logout.href", Is.`is`("http://localhost/logout")))
     }
 
     @Test
     @WithAnonymousUser
-    fun `Return available links for anonymous user`()
+    fun `Return 404 for anonymous users`()
     {
         mockMvc.perform(
             MockMvcRequestBuilders.get("/")
-                .with(jwt().jwt(jwt))
         )
-            .andExpect(MockMvcResultMatchers.status().isOk)
-            .andExpect(MockMvcResultMatchers.content().contentType("application/hal+json"))
-            .andExpect(MockMvcResultMatchers.jsonPath("_links.login.href", Is.`is`("http://localhost/login"))
-            )
+            .andExpect(MockMvcResultMatchers.status().isNotFound)
     }
 
 }

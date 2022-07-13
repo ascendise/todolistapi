@@ -25,8 +25,7 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
             .cors().and()
             .csrf{ it.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()) }
             .authorizeRequests{
-                it.antMatchers("/", "/login").permitAll()
-                .anyRequest().authenticated()
+                it.anyRequest().authenticated()
             }
             .exceptionHandling{
                 it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.NOT_FOUND))
