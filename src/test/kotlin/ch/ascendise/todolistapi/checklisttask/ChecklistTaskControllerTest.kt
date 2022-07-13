@@ -60,6 +60,8 @@ class ChecklistTaskControllerTest {
     fun setUp() {
         every { jwt.subject }.returns(user.subject)
         every { jwt.getClaimAsString("given_name") }.returns(user.username)
+        every { jwt.hasClaim(any())}.answers { callOriginal() }
+        every { jwt.claims}.returns(mapOf( "name" to user.username, "sub" to user.subject))
         every { userService.getUser(jwt) } returns user
     }
 

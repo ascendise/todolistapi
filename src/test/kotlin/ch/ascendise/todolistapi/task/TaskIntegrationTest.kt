@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.mockk.every
+import io.mockk.mockk
 import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -16,11 +18,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.security.oauth2.core.oidc.OidcIdToken
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -74,9 +73,9 @@ class TaskIntegrationTest {
 
     @Test
     fun `Return tasks for user`() {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val result = mockMvc.perform(
-            get("/tasks").with(oidcLogin().oidcUser(oidcUser))
+            get("/tasks").with(jwt().jwt(jwt))
         )
             .andExpect(status().is2xxSuccessful)
             .andReturn()
@@ -89,21 +88,21 @@ class TaskIntegrationTest {
         assertEquals(actualTasks, expectedTasks, "Did not return expected tasks")
     }
 
-    fun createOidcUser(user: User): DefaultOidcUser = DefaultOidcUser(
-        AuthorityUtils.createAuthorityList("SCOPE_message:read", "SCOPE_message:write"),
-        OidcIdToken.withTokenValue("id-token")
-            .claim("sub", "12345")
-            .claim("auth-oauth2|123451234512345", user.subject)
-            .claim("given_name", user.username)
-            .build()
-    )
+    fun getJwt(user: User): Jwt {
+        val jwt = mockk<Jwt>()
+        every { jwt.subject }.returns(user.subject)
+        every { jwt.getClaimAsString("name")}.returns(user.username)
+        every { jwt.hasClaim(any())}.answers { callOriginal() }
+        every { jwt.claims}.returns(mapOf( "name" to user.username, "sub" to user.subject))
+        return jwt
+    }
 
     @Test
     fun `Correct format for GET all request`() {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val tasks = taskRepository.findAllByUserId(user.id)
         mockMvc.perform(
-            get("/tasks").with(oidcLogin().oidcUser(oidcUser))
+            get("/tasks").with(jwt().jwt(jwt))
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/hal+json"))
@@ -114,10 +113,10 @@ class TaskIntegrationTest {
 
     @Test
     fun `Return specific task for user`() {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val returnedTask = taskRepository.findAllByUserId(user.id)[0]
         val result = mockMvc.perform(
-            get("/tasks/${returnedTask.id}").with(oidcLogin().oidcUser(oidcUser))
+            get("/tasks/${returnedTask.id}").with(jwt().jwt(jwt))
         )
             .andExpect(status().isOk)
             .andReturn()
@@ -128,10 +127,10 @@ class TaskIntegrationTest {
 
     @Test
     fun `Correct format for GET request`() {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val task = taskRepository.findAllByUserId(user.id)[0]
         mockMvc.perform(
-            get("/tasks/${task.id}").with(oidcLogin().oidcUser(oidcUser))
+            get("/tasks/${task.id}").with(jwt().jwt(jwt))
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/hal+json"))
@@ -141,7 +140,7 @@ class TaskIntegrationTest {
 
     @Test
     fun `Correct format for POST request`() {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val newTask = Task(
             name = "Clean bathroom",
             description = "Close attention to sink",
@@ -151,7 +150,7 @@ class TaskIntegrationTest {
         val expectedId = taskRepository.findAll().last().id + 1
         mockMvc.perform(
             post("/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(json)
                 .contentType("application/hal+json")
@@ -178,11 +177,11 @@ class TaskIntegrationTest {
     }
 
     private fun sendPOSTRequest(task: Task): ResultActions {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val json = jackson.writeValueAsString(task)
         return mockMvc.perform(
             post("/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(json)
                 .contentType("application/json")
@@ -231,7 +230,7 @@ class TaskIntegrationTest {
 
     @Test
     fun `Only have to set important stuff in POST`() {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val taskJson = "{\n" +
                 "    \"id\": 0,\n" +
                 "    \"name\": \"Clean bathroom\",\n" +
@@ -245,7 +244,7 @@ class TaskIntegrationTest {
                 "}"
         mockMvc.perform(
             post("/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(taskJson)
                 .contentType("application/json")
@@ -264,11 +263,11 @@ class TaskIntegrationTest {
     }
 
     private fun sendPUTRequest(task: Task, id: Long): ResultActions {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val json = jackson.writeValueAsString(task)
         return mockMvc.perform(
             put("/tasks/$id")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(json)
                 .contentType("application/json")
@@ -294,7 +293,7 @@ class TaskIntegrationTest {
 
     @Test
     fun `Only have to set important stuff in PUT`() {
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val taskJson = "{\n" +
                 "    \"id\": 0,\n" +
                 "    \"name\": \"Clean bathroom\",\n" +
@@ -309,7 +308,7 @@ class TaskIntegrationTest {
         val oldTask = taskRepository.findAll().first()
         mockMvc.perform(
             put("/tasks/${oldTask.id}")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(taskJson)
                 .contentType("application/json")
@@ -320,10 +319,10 @@ class TaskIntegrationTest {
     @Test
     fun `Delete task`() {
         val task = tasks.elementAt(0)
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         mockMvc.perform(
             delete("/tasks/${task.id}")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
         )
             .andExpect(status().isNoContent)
@@ -334,11 +333,11 @@ class TaskIntegrationTest {
     @Test
     fun `Return 404 when trying to get task from other user`()
     {
-        val oidcUser = createOidcUser(otherUser)
+        val jwt = getJwt(otherUser)
         val task = tasks.elementAt(0)
         mockMvc.perform(
             get("/tasks/${task.id}")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
             )
             .andExpect(status().isNotFound)
             .andExpect(content().string(""))
@@ -346,14 +345,14 @@ class TaskIntegrationTest {
 
     @Test
     fun `Return 404 when trying to update a resource from another user`() {
-        val oidcUser = createOidcUser(otherUser)
+        val jwt = getJwt(otherUser)
         val task = tasks.elementAt(0)
         val newTask = Task(name = "pwned", description = "This is my task now", user = otherUser)
         mockMvc.perform(
             put("/tasks/${task.id}")
                 .content(jackson.writeValueAsString(newTask))
                 .contentType("application/json")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
         )
             .andExpect(status().isNotFound)
@@ -364,11 +363,11 @@ class TaskIntegrationTest {
 
     @Test
     fun `Return 204 when trying to delete a resource from another user but don't actually delete it`() {
-        val oidcUser = createOidcUser(otherUser)
+        val jwt = getJwt(otherUser)
         val task = tasks.elementAt(0)
         mockMvc.perform(
             delete("/tasks/${task.id}")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
         )
             .andExpect(status().isNoContent)

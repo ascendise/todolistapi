@@ -1,5 +1,7 @@
 package ch.ascendise.todolistapi.user
 
+import io.mockk.every
+import io.mockk.mockk
 import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -7,12 +9,9 @@ import org.junit.jupiter.api.assertAll
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.security.oauth2.core.oidc.OidcIdToken
-import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.context.support.WithAnonymousUser
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -31,13 +30,6 @@ class UserIntegrationTest {
 
     @Autowired
     private lateinit var userRepository: UserRepository
-
-    @Test
-    fun `Get redirected to Google OAuth2`()
-    {
-        mockMvc.perform(get("/login/google"))
-            .andExpect(status().is3xxRedirection)
-    }
 
     @Test
     @WithAnonymousUser
@@ -59,9 +51,9 @@ class UserIntegrationTest {
     fun `Show info of current user`() {
         val expectedUser = User(subject = "auth-oauth2|123451234512345", username = "Max Muster")
         userRepository.save(expectedUser)
-        val oidcUser = createOidcUser(expectedUser)
+        val jwt = getJwt(expectedUser)
         val result = mockMvc.perform(
-            get("/user").with(oidcLogin().oidcUser(oidcUser))
+            get("/user").with(jwt().jwt(jwt))
         )
             .andExpect(status().is2xxSuccessful)
             .andReturn().response.contentAsString
@@ -70,22 +62,22 @@ class UserIntegrationTest {
             {result.contains(expectedUser.id.toString())})
     }
 
-    fun createOidcUser(user: User): DefaultOidcUser = DefaultOidcUser(
-        AuthorityUtils.createAuthorityList("SCOPE_message:read", "SCOPE_message:write"),
-        OidcIdToken.withTokenValue("id-token")
-            .claim("sub", "12345")
-            .claim("email", user.subject)
-            .claim("given_name", user.username)
-            .build()
-    )
+    fun getJwt(user: User): Jwt {
+        val jwt = mockk<Jwt>()
+        every { jwt.subject }.returns(user.subject)
+        every { jwt.getClaimAsString("name")}.returns(user.username)
+        every { jwt.hasClaim(any())}.answers { callOriginal() }
+        every { jwt.claims}.returns(mapOf( "name" to user.username, "sub" to user.subject))
+        return jwt
+    }
 
     @Test
     fun `Delete user`() {
         val user = User(subject=  "auth-oauth2|123451234512345", username = "name")
         userRepository.save(user)
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         mockMvc.perform(
-            delete("/user").with(oidcLogin().oidcUser(oidcUser))
+            delete("/user").with(jwt().jwt(jwt))
                 .with(csrf())
         )
             .andExpect(status().is2xxSuccessful)
@@ -96,9 +88,9 @@ class UserIntegrationTest {
     fun `Deleting user does not have a response body`() {
         val user = User(subject = "auth-oauth2|123451234512345", username = "name")
         userRepository.save(user)
-        val oidcUser = createOidcUser(user)
+        val jwt = getJwt(user)
         val result = mockMvc.perform(
-            delete("/user").with(oidcLogin().oidcUser(oidcUser))
+            delete("/user").with(jwt().jwt(jwt))
                 .with(csrf())
         )
             .andExpect(status().isNoContent)
@@ -110,9 +102,9 @@ class UserIntegrationTest {
     fun `Show available operations for user`() {
         val expectedUser = User(subject = "auth-oauth2|123451234512345", username = "Max Muster")
         userRepository.save(expectedUser)
-        val oidcUser = createOidcUser(expectedUser)
+        val jwt = getJwt(expectedUser)
         mockMvc.perform(
-            get("/user").with(oidcLogin().oidcUser(oidcUser))
+            get("/user").with(jwt().jwt(jwt))
         )
             .andExpect(status().is2xxSuccessful)
             .andExpect(jsonPath("_links.self.href", `is`("http://localhost/user")))
