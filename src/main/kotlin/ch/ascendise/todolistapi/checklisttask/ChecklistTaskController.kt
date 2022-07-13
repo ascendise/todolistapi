@@ -6,6 +6,7 @@ import ch.ascendise.todolistapi.checklist.ChecklistNotFoundException
 import ch.ascendise.todolistapi.task.TaskNotFoundException
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.hateoas.CollectionModel
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpStatus
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.stream.Collectors
 
 @RestController
+@SecurityRequirement(name = "bearer-key")
 class ChecklistTaskController(
     val service: ChecklistTaskService,
     val checklistTaskModelAssembler: ChecklistTaskModelAssembler,

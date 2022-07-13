@@ -3,6 +3,9 @@ package ch.ascendise.todolistapi.checklist
 import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import org.springframework.hateoas.CollectionModel
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpStatus
@@ -12,6 +15,7 @@ import java.net.URI
 import java.util.stream.Collectors
 
 @RestController
+@SecurityRequirement(name = "bearer-key")
 class ChecklistController(
     val service: ChecklistService,
     val modelAssembler: ChecklistModelAssembler
