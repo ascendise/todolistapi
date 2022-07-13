@@ -9,5 +9,4 @@ import org.springframework.context.annotation.Configuration
 @ConfigurationProperties
 class ApplicationConfig(
     var allowedOriginPatterns: String = "*"
-) {
-}
+)
