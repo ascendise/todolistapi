@@ -6,7 +6,7 @@ import javax.persistence.*
 @Entity
 class User(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var id: Long = 0,
-    @Column(unique = true) var email: String,
+    @Column(unique = true) var subject: String,
     @Column(unique = true) var username: String
     ): RepresentationModel<User>() {
 
@@ -17,7 +17,7 @@ class User(
         other as User
 
         if (id != other.id) return false
-        if (email != other.email) return false
+        if (subject != other.subject) return false
         if (username != other.username) return false
 
         return true
@@ -25,7 +25,7 @@ class User(
 
     override fun hashCode(): Int {
         var result = id.hashCode()
-        result = 31 * result + email.hashCode()
+        result = 31 * result + subject.hashCode()
         result = 31 * result + username.hashCode()
         return result
     }

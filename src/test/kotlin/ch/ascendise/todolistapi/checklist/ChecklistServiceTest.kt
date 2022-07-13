@@ -21,7 +21,7 @@ class ChecklistServiceTest {
     @Autowired
     private lateinit var checklistService: ChecklistService
 
-    private val user = User(id = 1, username = "User", email = "email@domain.com")
+    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
 
     @Test
     fun `Fetch all checklists`(){

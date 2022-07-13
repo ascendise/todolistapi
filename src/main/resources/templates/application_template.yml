@@ -1,11 +1,10 @@
 spring:
   security:
     oauth2:
-      client:
-        registration:
-          google:
-            clientId: [client-id]
-            clientSecret: [client.secret]
+      resourceserver:
+        jwt:
+          issuer-uri: [issuer-uri]
+          jwk-set-uri:  [jwk-set-uri]
   jpa:
     hibernate:
       ddl-auto: "update"

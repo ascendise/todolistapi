@@ -16,6 +16,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.mockk.verify
 import org.hamcrest.core.Is
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -27,8 +28,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oidcLogin
+import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -38,6 +40,8 @@ import java.net.URI
 @AutoConfigureMockMvc
 class ChecklistTaskControllerTest {
 
+    @MockK
+    private lateinit var jwt: Jwt
     @MockkBean
     private lateinit var service: ChecklistTaskService
     @MockkBean
@@ -50,19 +54,15 @@ class ChecklistTaskControllerTest {
         .registerModule(JavaTimeModule())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-    private val user = User(id = 100, username = "user", email = "mail@domain.com")
-
-    private val oidcUser = DefaultOidcUser(
-        AuthorityUtils.createAuthorityList("SCOPE_message:read", "SCOPE_message:write"),
-        OidcIdToken.withTokenValue("id-token")
-            .claim("sub", "12345")
-            .claim("email", user.email)
-            .claim("given_name", user.username)
-            .build())
+    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
 
     @BeforeEach
     fun setUp() {
-        every { userService.getUser(oidcUser) } returns user
+        every { jwt.subject }.returns(user.subject)
+        every { jwt.getClaimAsString("given_name") }.returns(user.username)
+        every { jwt.hasClaim(any())}.answers { callOriginal() }
+        every { jwt.claims}.returns(mapOf( "name" to user.username, "sub" to user.subject))
+        every { userService.getUser(jwt) } returns user
     }
 
     @Test
@@ -81,7 +81,7 @@ class ChecklistTaskControllerTest {
         every { service.getRelations(user.id) } returns expectedRelations
         val result = mockMvc.perform(
             get("/checklists/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
         )
             .andExpect(status().isOk)
             .andReturn()
@@ -104,7 +104,7 @@ class ChecklistTaskControllerTest {
         } returns returnedChecklist
         val result = mockMvc.perform(
             put("/checklists/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(checklistTaskJson)
                 .contentType("application/json")
@@ -125,7 +125,7 @@ class ChecklistTaskControllerTest {
         every { service.removeTask(ChecklistTask(301, 201, user.id)) } returns expectedChecklist
         val result = mockMvc.perform(
             delete(URI("/checklists/301/tasks/201"))
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
         )
             .andExpect(status().isOk)
@@ -147,7 +147,7 @@ class ChecklistTaskControllerTest {
         every { service.getRelations(user.id) } returns expectedRelations
         mockMvc.perform(
             get("/checklists/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
         )
             .andExpect(status().isOk)
             .andExpect(content().contentType("application/hal+json"))
@@ -173,7 +173,7 @@ class ChecklistTaskControllerTest {
         } returns expectedChecklist
         mockMvc.perform(
             put("/checklists/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(checklistTaskJson)
                 .contentType("application/json")
@@ -197,7 +197,7 @@ class ChecklistTaskControllerTest {
         } throws TaskNotFoundException()
         val result = mockMvc.perform(
             put("/checklists/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(checklistTaskJson)
                 .contentType("application/json")
@@ -221,7 +221,7 @@ class ChecklistTaskControllerTest {
         } throws ChecklistNotFoundException()
         val result = mockMvc.perform(
             put("/checklists/tasks")
-                .with(oidcLogin().oidcUser(oidcUser))
+                .with(jwt().jwt(jwt))
                 .with(csrf())
                 .content(checklistTaskJson)
                 .contentType("application/json")
