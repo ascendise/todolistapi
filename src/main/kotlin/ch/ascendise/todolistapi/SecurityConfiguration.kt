@@ -27,7 +27,8 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
             .cors().and()
             .csrf().disable()
             .authorizeRequests{
-                it.anyRequest().authenticated()
+                it.antMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                    .anyRequest().authenticated()
             }
             .exceptionHandling{
                 it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.NOT_FOUND))
