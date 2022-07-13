@@ -10,11 +10,11 @@ properties is generated and the placeholders have to be replaced with the real v
 
 ```
 spring.security.oauth2.resourceserver.jwt.issuer-uri
-spring.security.oauth2.resourceserver.jwt.jwkt-set-uri
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri
 ```
 
 These values are needed to register the authorization-server used for authentication. The issuer uri has to match with 
-the "iss"-claim of the JWT. The jwkt-set-uri is where the app gets the info to validate the signature of your JWT.
+the "iss"-claim of the JWT. The jwk-set-uri is where the app gets the info to validate the signature of your JWT.
 It should be something along the lines of "*/.well-known/jwks.json"
 
 ### Datasource

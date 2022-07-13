@@ -3,5 +3,5 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: {issuer-uri}
-          jwk-set-uri:  {issuer-uri}
+          issuer-uri: issuer-uri
+          jwk-set-uri:  jwk-set-uri
