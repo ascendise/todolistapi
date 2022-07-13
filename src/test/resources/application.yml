@@ -1,8 +1,7 @@
 spring:
   security:
     oauth2:
-      client:
-        registration:
-          google:
-            clientId: clientId
-            clientSecret: clientSecret
+      resourceserver:
+        jwt:
+          issuer-uri: {issuer-uri}
+          jwk-set-uri:  {issuer-uri}
