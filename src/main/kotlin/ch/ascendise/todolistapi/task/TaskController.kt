@@ -3,6 +3,7 @@ package ch.ascendise.todolistapi.task
 import ch.ascendise.todolistapi.ApiError
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.hateoas.CollectionModel
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpStatus
@@ -13,6 +14,7 @@ import java.util.stream.Collectors
 
 
 @RestController
+@SecurityRequirement(name = "bearer-key")
 class TaskController(
     val taskService: TaskService,
     val taskModelAssembler: TaskModelAssembler

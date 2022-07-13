@@ -65,11 +65,11 @@ class ChecklistTaskControllerTest {
     @Test
     fun `Return relations as list`() {
         val expectedRelationDtos = listOf(
-            ChecklistTaskDto(checklistId = 301, taskId = 201),
-            ChecklistTaskDto(checklistId = 301, taskId = 202),
-            ChecklistTaskDto(checklistId = 301, taskId = 203),
-            ChecklistTaskDto(checklistId = 302, taskId = 202),
-            ChecklistTaskDto(checklistId = 302, taskId = 204)
+            ChecklistTaskResponseDto(checklistId = 301, taskId = 201),
+            ChecklistTaskResponseDto(checklistId = 301, taskId = 202),
+            ChecklistTaskResponseDto(checklistId = 301, taskId = 203),
+            ChecklistTaskResponseDto(checklistId = 302, taskId = 202),
+            ChecklistTaskResponseDto(checklistId = 302, taskId = 204)
         )
         val expectedRelations = mutableListOf<ChecklistTask>()
         for(relationDto in expectedRelationDtos) {
@@ -84,7 +84,7 @@ class ChecklistTaskControllerTest {
             .andReturn()
         verify { service.getRelations(user.id) }
         val jsonNode = jackson.readTree(result.response.contentAsString)
-        val relations: List<ChecklistTaskDto> = jackson.treeToValue(jsonNode.at("/_embedded/relations"))
+        val relations: List<ChecklistTaskResponseDto> = jackson.treeToValue(jsonNode.at("/_embedded/relations"))
         assertEquals(expectedRelationDtos, relations)
     }
 
@@ -135,8 +135,8 @@ class ChecklistTaskControllerTest {
     @Test
     fun `Correct format for GET relations`() {
         val expectedRelationDtos = listOf(
-            ChecklistTaskDto(checklistId = 301, taskId = 201),
-            ChecklistTaskDto(checklistId = 301, taskId = 202))
+            ChecklistTaskResponseDto(checklistId = 301, taskId = 201),
+            ChecklistTaskResponseDto(checklistId = 301, taskId = 202))
         val expectedRelations = mutableListOf<ChecklistTask>()
         for(relationDto in expectedRelationDtos) {
             expectedRelations.add(relationDto.toChecklistTask(user))
