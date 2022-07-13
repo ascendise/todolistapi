@@ -23,17 +23,17 @@ class ChecklistTaskController(
 ) {
 
     @GetMapping("/checklists/tasks")
-    fun getRelations(@CurrentUser user: User): CollectionModel<ChecklistTaskDto> =
+    fun getRelations(@CurrentUser user: User): CollectionModel<ChecklistTaskResponseDto> =
         service.getRelations(user.id)
             .stream()
-            .map { ct -> ChecklistTaskDto(ct.checklistId, ct.taskId).let { checklistTaskModelAssembler.toModel(it) } }
+            .map { ct -> ChecklistTaskResponseDto(ct.checklistId, ct.taskId).let { checklistTaskModelAssembler.toModel(it) } }
             .collect(Collectors.toList())
             .let { CollectionModel.of(it,
                 linkTo<ChecklistTaskController> { getRelations(user) }.withSelfRel(),
                 linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations")) }
 
     @PutMapping("/checklists/tasks")
-    fun addRelation(@CurrentUser user: User, @RequestBody dto: ChecklistTaskDto) =
+    fun addRelation(@CurrentUser user: User, @RequestBody dto: ChecklistTaskRequestDto) =
         service.addTask(dto.toChecklistTask(user))
             .let { checklistModelAssembler.toModel(it) }
 

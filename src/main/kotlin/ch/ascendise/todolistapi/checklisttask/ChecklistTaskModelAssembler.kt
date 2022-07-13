@@ -8,9 +8,9 @@ import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.stereotype.Component
 
 @Component
-class ChecklistTaskModelAssembler: RepresentationModelAssembler<ChecklistTaskDto, ChecklistTaskDto> {
+class ChecklistTaskModelAssembler: RepresentationModelAssembler<ChecklistTaskResponseDto, ChecklistTaskResponseDto> {
 
-    override fun toModel(relation: ChecklistTaskDto): ChecklistTaskDto {
+    override fun toModel(relation: ChecklistTaskResponseDto): ChecklistTaskResponseDto {
         val dummyUser = User(-1, "", "")
         return relation.add(
             linkTo<ChecklistController> { getChecklist(relation.checklistId, dummyUser) }.withRel("checklist"),

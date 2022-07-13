@@ -5,10 +5,10 @@ import org.springframework.hateoas.RepresentationModel
 import org.springframework.hateoas.server.core.Relation
 
 @Relation(collectionRelation = "relations")
-data class ChecklistTaskDto(
+data class ChecklistTaskResponseDto(
     val checklistId: Long,
     val taskId: Long
-): RepresentationModel<ChecklistTaskDto>() {
+): RepresentationModel<ChecklistTaskResponseDto>() {
 
     fun toChecklistTask(user: User) = ChecklistTask(checklistId, taskId, user.id)
 }
