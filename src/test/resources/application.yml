@@ -4,4 +4,4 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: issuer-uri
-          jwk-set-uri:  jwk-set-uri
+          jwk-set-uri:  http://authorization-server.dev/.well-known/jwks.json
