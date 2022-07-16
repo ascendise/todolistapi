@@ -59,12 +59,12 @@ class HomeControllerTest {
 
     @Test
     @WithAnonymousUser
-    fun `Return 404 for anonymous users`()
+    fun `Return 401 for anonymous users`()
     {
         mockMvc.perform(
             MockMvcRequestBuilders.get("/")
         )
-            .andExpect(MockMvcResultMatchers.status().isNotFound)
+            .andExpect(MockMvcResultMatchers.status().isUnauthorized)
     }
 
 }
