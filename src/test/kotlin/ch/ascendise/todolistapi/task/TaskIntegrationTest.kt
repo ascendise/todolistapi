@@ -67,9 +67,9 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return 404 if not authorized`() {
+    fun `Return 401 if not authorized`() {
         mockMvc.perform(get("/tasks"))
-            .andExpect(status().isNotFound)
+            .andExpect(status().isUnauthorized)
     }
 
     @Test

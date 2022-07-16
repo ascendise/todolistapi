@@ -30,7 +30,7 @@ class SecurityConfiguration : WebSecurityConfigurerAdapter() {
                     .anyRequest().authenticated()
             }
             .exceptionHandling{
-                it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.NOT_FOUND))
+                it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             }
             .oauth2ResourceServer { it.jwt() }
     }

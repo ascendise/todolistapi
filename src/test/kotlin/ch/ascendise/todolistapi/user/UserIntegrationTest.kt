@@ -34,18 +34,10 @@ class UserIntegrationTest {
 
     @Test
     @WithAnonymousUser
-    fun `Return 404 if not authorized`()
+    fun `Return 401 if not authorized`()
     {
         mockMvc.perform(get("/user"))
-            .andExpect(status().isNotFound)
-    }
-
-    @Test
-    @WithAnonymousUser
-    fun `Return 404 when trying to access user that doesn't exist`()
-    {
-        mockMvc.perform(get("/user"))
-            .andExpect(status().isNotFound)
+            .andExpect(status().isUnauthorized)
     }
 
     @Test
