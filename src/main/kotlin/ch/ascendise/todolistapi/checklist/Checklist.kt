@@ -2,6 +2,8 @@ package ch.ascendise.todolistapi.checklist
 
 import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.user.User
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
 import javax.persistence.*
 
 @Entity
@@ -9,7 +11,7 @@ class Checklist(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) var id: Long = 0,
     var name: String,
     @ManyToMany(targetEntity = Task::class) var tasks: MutableList<Task> = mutableListOf(),
-    @ManyToOne var user: User
+    @ManyToOne @OnDelete(action = OnDeleteAction.CASCADE) var user: User
 ){
 
     override fun equals(other: Any?): Boolean {
