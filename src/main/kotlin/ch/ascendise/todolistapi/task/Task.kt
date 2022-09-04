@@ -1,6 +1,8 @@
 package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.user.User
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
 import java.time.LocalDate
 import javax.persistence.*
 
@@ -12,7 +14,7 @@ class Task (
     var startDate: LocalDate = LocalDate.now(),
     var endDate: LocalDate? = null,
     var isDone: Boolean = false,
-    @ManyToOne var user: User
+    @ManyToOne @OnDelete(action = OnDeleteAction.CASCADE) var user: User
     ) {
 
     override fun equals(other: Any?): Boolean {
