@@ -1,5 +1,9 @@
 package ch.ascendise.todolistapi.user
 
+import ch.ascendise.todolistapi.checklist.Checklist
+import ch.ascendise.todolistapi.checklist.ChecklistService
+import ch.ascendise.todolistapi.task.Task
+import ch.ascendise.todolistapi.task.TaskService
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.core.Is.`is`
@@ -18,6 +22,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delet
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.LocalDate
 import javax.transaction.Transactional
 
 
@@ -26,11 +31,10 @@ import javax.transaction.Transactional
 @Transactional
 class UserIntegrationTest {
 
-    @Autowired
-    private lateinit var mockMvc: MockMvc
-
-    @Autowired
-    private lateinit var userRepository: UserRepository
+    @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var userRepository: UserRepository
+    @Autowired private lateinit var taskService: TaskService
+    @Autowired private lateinit var checklistService: ChecklistService
 
     @Test
     @WithAnonymousUser
@@ -66,15 +70,21 @@ class UserIntegrationTest {
 
     @Test
     fun `Delete user`() {
-        val user = User(subject=  "auth-oauth2|123451234512345", username = "name")
+        var user = User(id = 1, subject=  "auth-oauth2|123451234512345", username = "name")
         userRepository.save(user)
+        user = userRepository.findBySubject("auth-oauth2|123451234512345")
         val jwt = getJwt(user)
+        checklistService.create(Checklist(id = 101, name = "New Checklist1", user = user))
+        val task = Task(id = 201, name = "Task1", description = "Task1", startDate = LocalDate.now(), user = user)
+        taskService.create(task)
         mockMvc.perform(
             delete("/user").with(jwt().jwt(jwt))
                 .with(csrf())
         )
             .andExpect(status().is2xxSuccessful)
         assertEquals(0, userRepository.findAll().size, "User was not deleted")
+        assertEquals(0, checklistService.getChecklists(user.id).size, "Checklists still exist")
+        assertEquals(0, taskService.getAll(user.id).size, "Tasks still exist")
     }
 
     @Test
