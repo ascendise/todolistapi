@@ -5,6 +5,7 @@ import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.task.TaskController
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
+import ch.ascendise.todolistapi.user.UserController
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.hateoas.EntityModel
 import org.springframework.hateoas.server.mvc.linkTo
@@ -20,7 +21,8 @@ class HomeController {
         return EntityModel.of(Response(),
             linkTo<TaskController> { getTasks(user) }.withRel("tasks"),
             linkTo<ChecklistController> { getChecklists(user) }.withRel("checklists"),
-            linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations"))
+            linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations"),
+            linkTo<UserController> { getCurrentUser(user) }.withRel("user"))
     }
 
     class Response
