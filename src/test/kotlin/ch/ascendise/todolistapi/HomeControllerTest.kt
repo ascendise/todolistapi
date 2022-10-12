@@ -55,6 +55,7 @@ class HomeControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("_links.tasks.href", Is.`is`("http://localhost/tasks")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
             .andExpect(MockMvcResultMatchers.jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
+            .andExpect(MockMvcResultMatchers.jsonPath("_links.user.href", Is.`is`("http://localhost/user")))
     }
 
     @Test
