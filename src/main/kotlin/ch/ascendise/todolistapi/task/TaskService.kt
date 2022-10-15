@@ -28,6 +28,7 @@ class TaskService(
         oldTask.description = task.description
         oldTask.startDate = task.startDate
         oldTask.endDate = task.endDate
+        oldTask.isDone = task.isDone
         return taskRepository.save(oldTask)
     }
 
