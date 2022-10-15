@@ -4,7 +4,9 @@ import ch.ascendise.todolistapi.user.User
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.justRun
+import io.mockk.slot
 import io.mockk.verify
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -139,13 +141,15 @@ class TaskServiceTest {
 
     @Test
     fun `Update task`() {
-        val user = User(id = 1, subject = "auth-oauth2|123451234512345", username = "Max")
-        val task = Task(id = 1, name = "Updated Task", description = "This task has a new description", user = user)
-        every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(Task(id = 1, name = "Old task", description = "This task is old", user = user))
-        every {taskRepository.save(task)} returns task
-        taskService.update(task)
-        verify {taskRepository.save(task)}
-        verify { taskRepository.findByIdAndUserId(task.id, user.id) }
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val oldTask = Task(id = 201, name = "Old Task", description = "This task has an old description", isDone = false, user = user)
+        val newTask = Task(id = 201, name = "Updated Task", description = "This task has a new description", isDone = true, user = user)
+        every { taskRepository.findByIdAndUserId(oldTask.id, user.id) } returns Optional.of(oldTask)
+        every {taskRepository.save(any()) } returnsArgument 0
+        val updatedTask = taskService.update(newTask)
+        verify { taskRepository.findByIdAndUserId(oldTask.id, user.id) }
+        verify {taskRepository.save(any<Task>()) }
+        assertEquals(updatedTask, newTask)
     }
 
     @Test
