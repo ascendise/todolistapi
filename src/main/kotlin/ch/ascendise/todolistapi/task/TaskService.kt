@@ -9,11 +9,11 @@ class TaskService(
 ) {
 
     fun create(task: Task): Task {
-        validate(task)
+        validateNewTask(task)
         return taskRepository.save(task)
     }
 
-    fun validate(task: Task) {
+    fun validateNewTask(task: Task) {
         if (task.endDate?.isBefore(task.startDate) == true) {
             throw InvalidDateRangeTaskException()
         } else if(task.startDate.isBefore(LocalDate.now())) {
@@ -22,8 +22,12 @@ class TaskService(
     }
 
     fun update(task: Task): Task {
-        validate(task)
-        val oldTask = taskRepository.findByIdAndUserId(task.id, task.user.id).orElseThrow { TaskNotFoundException()}
+        val oldTask = taskRepository.findByIdAndUserId(task.id, task.user.id).orElseThrow { TaskNotFoundException() }
+        if (task.endDate?.isBefore(task.startDate) == true) {
+            throw InvalidDateRangeTaskException()
+        }else if (task.startDate.isBefore(oldTask.startDate)) {
+            throw InvalidDateRangeTaskException()
+        }
         oldTask.name = task.name
         oldTask.description = task.description
         oldTask.startDate = task.startDate

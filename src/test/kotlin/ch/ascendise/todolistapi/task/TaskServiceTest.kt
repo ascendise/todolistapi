@@ -8,6 +8,7 @@ import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -137,6 +138,20 @@ class TaskServiceTest {
         val user = User(id = 1, subject = "auth-oauth2|123451234512345", username = "Max")
         every { taskRepository.findByIdAndUserId(101, 1) } returns Optional.empty()
         assertThrows<TaskNotFoundException> { taskService.getById(user.id, 101) }
+    }
+
+    @Test
+    fun `Update task should not require start date to be changed to today`() {
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val oldTask = Task(id = 201, name = "Old Task", description = "This task has an old description",
+            startDate = LocalDate.now().minusDays(1), isDone = false, user = user)
+        val newTask = Task(id = 201, name = "Updated Task", description = "This task has a new description",
+            startDate = LocalDate.now().minusDays(1), isDone = true, user = user)
+        every { taskRepository.findByIdAndUserId(oldTask.id, user.id) } returns Optional.of(oldTask)
+        every {taskRepository.save(any()) } returnsArgument 0
+        assertDoesNotThrow { taskService.update(newTask) }
+        verify { taskRepository.findByIdAndUserId(oldTask.id, user.id) }
+        verify {taskRepository.save(any<Task>()) }
     }
 
     @Test
