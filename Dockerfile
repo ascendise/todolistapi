@@ -1,9 +1,9 @@
-FROM openjdk:17-alpine AS build
+FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
 COPY . .
 RUN ./mvnw -Dmaven.test.skip package
 
-FROM openjdk:17-alpine
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /usr/bin/todolistapi/
 COPY --from=build /app/target/todolistapi.jar ./
 RUN addgroup -S spring && adduser -S spring -G spring
