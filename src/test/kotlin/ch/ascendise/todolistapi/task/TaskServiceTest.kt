@@ -1,5 +1,8 @@
 package ch.ascendise.todolistapi.task
 
+import ch.ascendise.todolistapi.checklist.Checklist
+import ch.ascendise.todolistapi.checklist.ChecklistRepository
+import ch.ascendise.todolistapi.checklist.ChecklistService
 import ch.ascendise.todolistapi.user.User
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
@@ -7,6 +10,7 @@ import io.mockk.justRun
 import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -20,6 +24,9 @@ class TaskServiceTest {
 
     @Autowired
     private lateinit var taskService: TaskService
+
+    @MockkBean
+    private lateinit var checklistService: ChecklistService
 
     @MockkBean
     private lateinit var taskRepository: TaskRepository
@@ -121,8 +128,30 @@ class TaskServiceTest {
     fun `Delete task`()
     {
         justRun { taskRepository.deleteByIdAndUserId(1, 1) }
+        every { checklistService.getChecklists(1) } returns emptyList()
         taskService.delete(1, 1)
         verify { taskRepository.deleteByIdAndUserId(1, 1)}
+        verify { checklistService.getChecklists(1) }
+    }
+
+    @Test
+    fun `Delete task that is part of checklists`() {
+        val user = User(id = 101, username = "", subject = "")
+        val task = Task(id = 201, name = "Task", description = "Task1", startDate = LocalDate.now(), user = user)
+        val checklist1 = Checklist(id = 301, name = "Checklist1", tasks = mutableListOf(task), user = user)
+        val checklist2 = Checklist(id = 302, name = "Checklist2", tasks = mutableListOf(task), user = user)
+        val checklist3 = Checklist(id = 303, name = "Checklist3", tasks = mutableListOf(), user = user)
+        every { checklistService.getChecklists(user.id) } returns listOf(checklist1, checklist2, checklist3)
+        every { checklistService.update(any()) } returnsArgument 0
+        justRun { taskRepository.deleteByIdAndUserId(task.id, user.id) }
+        taskService.delete(101, 201)
+        verify { checklistService.getChecklists(user.id) }
+        verify {
+            checklistService.update(withArg {
+                assertFalse(it.tasks.contains(task))
+            })
+        }
+        verify { taskRepository.deleteByIdAndUserId(task.id, user.id)}
     }
 
     @Test

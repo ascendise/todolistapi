@@ -1,11 +1,13 @@
 package ch.ascendise.todolistapi.task
 
+import ch.ascendise.todolistapi.checklist.ChecklistService
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
 class TaskService(
-    val taskRepository: TaskRepository
+    val taskRepository: TaskRepository,
+    val checklistService: ChecklistService,
 ) {
 
     fun create(task: Task): Task {
@@ -37,7 +39,21 @@ class TaskService(
     }
 
     fun getAll(userId: Long): Set<Task> = taskRepository.findAllByUserId(userId).toSet()
-    fun delete(userId: Long, taskId: Long) = taskRepository.deleteByIdAndUserId(taskId, userId)
+
+    fun delete(userId: Long, taskId: Long) {
+        removeTaskFromChecklists(userId, taskId)
+        taskRepository.deleteByIdAndUserId(taskId, userId)
+    }
+
+    private fun removeTaskFromChecklists(userId: Long, taskId: Long) {
+        val checklists = checklistService.getChecklists(userId)
+        checklists.filter { it.tasks.any { t -> t.id == taskId } }
+            .forEach {
+                it.tasks.removeIf { t -> t.id == taskId }
+                checklistService.update(it)
+            }
+    }
+
     fun getById(userId: Long, taskId: Long): Task =
         taskRepository.findByIdAndUserId(taskId, userId).orElseThrow { TaskNotFoundException() }
 
