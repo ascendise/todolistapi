@@ -10,14 +10,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build image (version tag)
-        run: docker build . -t ${{secrets.DOCKER_USERNAME}}/todolistapi:${{ github.event.release.tag_name }}
+        run: docker build . -t ${{secrets.DOCKER_USERNAME}}/todolistapi:${{ github.event.release.tag_name }} -t  ${{secrets.DOCKER_USERNAME}}/todolistapi:latest
       - name: Login to Docker
         run: docker login -u ${{secrets.DOCKER_USERNAME}} --password ${{secrets.DOCKER_PASSWORD}}
       - name: Push image (version tag)
-        run: docker push ${{secrets.DOCKER_USERNAME}}/todolistapi:${{ github.event.release.tag_name }}
-      - name: Build image (latest tag)
-        run: docker build . -t ${{secrets.DOCKER_USERNAME}}/todolistapi:latest
-      - name: Push image (latest tag)
-        run: docker push ${{secrets.DOCKER_USERNAME}}/todolistapi:latest
+        run: docker push ${{secrets.DOCKER_USERNAME}}/todolistapi --all-tags
       - name: Be happy that everything worked
         run: echo Woohoo!
