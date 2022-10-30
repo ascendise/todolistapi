@@ -51,7 +51,7 @@ One way to run the application is to just use the command
 ```
 java -jar todolistAPI-1.0.0.jar
 ```
-### [Docker](https://hub.docker.com/r/ascendise/todolistAPI)
+### [Docker](https://hub.docker.com/r/ascendise/todolistapi)
 
 To run the docker container, you can run the following command
 
