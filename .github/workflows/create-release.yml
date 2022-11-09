@@ -14,8 +14,10 @@ jobs:
       version: ${{env.version}}
       tagexists: ${{ steps.tagexists.outputs.exists }}
     steps:
-      - uses: actions/checkout@v2
-      - name: Set Up JDK 17
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      - name: Set Up JDK 17 for building project
         uses: actions/setup-java@v2
         with:
           java-version: '17'
@@ -23,40 +25,14 @@ jobs:
           cache: 'maven'
       - name: Make Maven-Wrapper executable
         run: chmod +x ./mvnw
-      - name: Build project
-        run: ./mvnw --batch-mode -DskipTests clean package
-      - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v3
-        with:
-          name: jar
-          path: ./target/todolistapi.jar
-      - name: Get project version
-        id: fetchversion
-        run: |
-          echo "version=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)"  >> $GITHUB_ENV
-      - name: Check if release for version already exists
-        uses: mukunku/tag-exists-action@v1.0.0
-        id: tagexists
-        with:
-          tag: 'v${{env.version}}'
+      - name: Setup Node for Semantic release
+          uses: actions/setup-node@v3
+          with:
+            node-version: 16.x
+            cache: 'npm'
+      - name: Install Semantic Relase and plugins
+        run: npm i -g semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/github @smeantic-release/git
+      - name: Run semantic release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  release-version:
-    needs: build
-    runs-on: ubuntu-latest
-    if: needs.build.outputs.tagexists == 'false'
-    steps:
-      - name: Download jar
-        uses: actions/download-artifact@v3
-        with:
-          name: jar
-      - name: Create release
-        uses: ncipollo/release-action@v1
-        with:
-          allowUpdates: false
-          artifacts: "todolistapi.jar"
-          name: "TodolistApi v${{needs.build.outputs.version}}"
-          generateReleaseNotes: true
-          commit: "main"
-          tag: "v${{needs.build.outputs.version}}"
-          token: ${{ secrets.WORKFLOW_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_ACCESS_TOKEN }}
+        run: npx semantic-release
