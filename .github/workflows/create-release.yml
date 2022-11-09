@@ -1,11 +1,15 @@
-name: Create release
+name: create-release
 on:
-  push:
+  workflow_run:
+    workflows: ["run-tests"]
+    types:
+      - completed
     branches: [main]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     outputs:
       version: ${{env.version}}
       tagexists: ${{ steps.tagexists.outputs.exists }}
@@ -20,7 +24,7 @@ jobs:
       - name: Make Maven-Wrapper executable
         run: chmod +x ./mvnw
       - name: Build project
-        run: ./mvnw --batch-mode --update-snapshots -D gpg.skip=true verify
+        run: ./mvnw --batch-mode -DskipTests clean package
       - name: 'Upload Artifact'
         uses: actions/upload-artifact@v3
         with:

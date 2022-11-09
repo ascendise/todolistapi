@@ -1,4 +1,4 @@
-name: Build and Test TodolistApi
+name: run-tests
 on:
   push:
     branches: [main]
