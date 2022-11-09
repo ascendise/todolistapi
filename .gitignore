@@ -17,3 +17,5 @@ target/
 ### Config Files ###
 /application.yml
 /src/main/resources/application.yml
+
+node_modules/
