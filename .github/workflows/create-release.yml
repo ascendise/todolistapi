@@ -26,10 +26,10 @@ jobs:
       - name: Make Maven-Wrapper executable
         run: chmod +x ./mvnw
       - name: Setup Node for Semantic release
-          uses: actions/setup-node@v3
-          with:
-            node-version: 16.x
-            cache: 'npm'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: 'npm'
       - name: Install Semantic Relase and plugins
         run: npm i -g semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/changelog @semantic-release/exec @semantic-release/github @smeantic-release/git
       - name: Run semantic release
