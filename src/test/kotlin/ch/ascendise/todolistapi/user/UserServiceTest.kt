@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.security.oauth2.jwt.Jwt
 
-class UserServiceTest {
+internal class UserServiceTest {
 
     private lateinit var service: UserService
 
