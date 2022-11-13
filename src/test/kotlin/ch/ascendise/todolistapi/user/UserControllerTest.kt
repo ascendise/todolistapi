@@ -1,6 +1,7 @@
 package ch.ascendise.todolistapi.user
 
 import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
@@ -41,7 +42,7 @@ internal class UserControllerTest {
     @Test
     fun `should delete user and return a NO CONTENT status`() {
         val user =  User(id = 101, username = "John Doe", subject = "auth|12345")
-        every { userService.delete(user) } returns Unit
+        justRun { userService.delete(user) }
         val response = controller.deleteCurrentUser(user)
         assertEquals(HttpStatus.NO_CONTENT, response.statusCode)
         assertEquals(null, response.body)

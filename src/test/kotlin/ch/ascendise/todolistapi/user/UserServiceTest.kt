@@ -51,9 +51,9 @@ internal class UserServiceTest {
             Task(id = 202, name = "Task 2", user = user)
         )
         every { taskService.getAll(user.id) } returns tasks
-        every { checklistService.delete(any(), user.id) } returns Unit
-        every { taskService.delete(user.id, any())} returns Unit
-        every { userRepository.delete(user) } returns Unit
+        justRun { checklistService.delete(any(), user.id) }
+        justRun { taskService.delete(user.id, any())}
+        justRun { userRepository.delete(user) }
         service.delete(user)
         verifyAll {
             checklistService.getChecklists(user.id)
