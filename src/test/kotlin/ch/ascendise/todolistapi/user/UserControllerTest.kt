@@ -17,7 +17,7 @@ internal class UserControllerTest {
     private lateinit var controller: UserController
 
     private val userService = mockk<UserService>()
-    private val userModelAssembler = mockk<UserModelAssembler>()
+    private val userModelAssembler = UserModelAssembler()
 
     @BeforeEach
     fun setUp() {
@@ -33,10 +33,8 @@ internal class UserControllerTest {
         expectedUser.add(linkTo<UserController> { getCurrentUser(expectedUser) }.withSelfRel())
         expectedUser.add(linkTo<UserController> { getCurrentUser(expectedUser) }.withRel("user"))
         val user = User(id = 101, username = "John Doe", subject = subject)
-        every { userModelAssembler.toModel(user) } returns expectedUser
         val actualUser = controller.getCurrentUser(user)
         assertEquals(expectedUser, actualUser)
-        verify { userModelAssembler.toModel(user) }
     }
 
     @Test
