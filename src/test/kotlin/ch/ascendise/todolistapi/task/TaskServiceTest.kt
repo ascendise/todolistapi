@@ -17,7 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDate
 import java.util.*
 
-class TaskServiceTest {
+internal class TaskServiceTest {
 
     private lateinit var service: TaskService
 
@@ -189,5 +189,27 @@ class TaskServiceTest {
         val task = Task(id = 201, name = "Updated Task", description = "This task has a new description", user = user)
         every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.empty()
         assertThrows<TaskNotFoundException> { service.update(task) }
+        verify { taskRepository.findByIdAndUserId(task.id, user.id) }
+    }
+
+    @Test
+    fun `should throw InvalidDateRangeTaskException if updated task has start date before end date `() {
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val oldTask = Task(id = 201, name = "Old Task", user = user)
+        val task = Task(id = 201, name = "Updated Task", user = user, endDate = LocalDate.now().minusDays(1))
+        every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(oldTask)
+        assertThrows<InvalidDateRangeTaskException> { service.update(task) }
+        verify { taskRepository.findByIdAndUserId(task.id, user.id) }
+    }
+
+    @Test
+    fun `should throw InvalidDateRangeTaskException if new start date is before old start date`() {
+
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val oldTask = Task(id = 201, name = "Old Task", user = user, startDate = LocalDate.now().plusDays(2))
+        val task = Task(id = 201, name = "Updated Task", user = user, endDate = LocalDate.now().plusDays(1))
+        every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(oldTask)
+        assertThrows<InvalidDateRangeTaskException> { service.update(task) }
+        verify { taskRepository.findByIdAndUserId(task.id, user.id) }
     }
 }

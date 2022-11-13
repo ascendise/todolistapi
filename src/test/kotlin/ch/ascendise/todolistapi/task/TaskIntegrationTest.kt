@@ -30,7 +30,7 @@ import javax.transaction.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class TaskIntegrationTest {
+internal class TaskIntegrationTest {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var userRepository: UserRepository
