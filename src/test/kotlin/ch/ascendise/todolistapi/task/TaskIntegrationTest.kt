@@ -132,7 +132,7 @@ internal class TaskIntegrationTest {
     }
 
     @Test
-    fun `should return possible operations for task on PUT request`() {
+    fun `should return possible operations for task on POST request`() {
         val jwt = getJwt(user)
         val newTask = Task(
             name = "Clean bathroom",
