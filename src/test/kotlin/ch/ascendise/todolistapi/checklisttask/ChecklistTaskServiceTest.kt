@@ -7,25 +7,27 @@ import ch.ascendise.todolistapi.task.TaskService
 import ch.ascendise.todolistapi.user.User
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
-@SpringBootTest
-class ChecklistTaskServiceTest {
+internal class ChecklistTaskServiceTest {
 
-    @Autowired
     private lateinit var service: ChecklistTaskService
 
-    @MockkBean
-    private lateinit var taskService: TaskService
-
-    @MockkBean
-    private lateinit var checklistService: ChecklistService
+    private val taskService = mockk<TaskService>()
+    private val checklistService =  mockk<ChecklistService>()
 
     private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
+
+    @BeforeEach
+    fun setUp() {
+        service = ChecklistTaskService(taskService, checklistService)
+    }
 
     @Test
     fun `Add task to checklist`() {
