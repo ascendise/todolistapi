@@ -19,8 +19,7 @@ import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.core.Is
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,10 +28,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import javax.transaction.Transactional
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
 @SpringBootTest
@@ -213,6 +211,23 @@ internal class ChecklistTaskIntegrationTest {
             statusCode = 404, name = "Not Found", description = "Checklist could not be found")
         val errorMessage: ApiError = jackson.readValue(response.response.contentAsString)
         assertEquals(expectedErrorMessage, errorMessage)
+    }
+
+    @Test
+    fun `should remove task from checklist and return updated checklist`() {
+        val taskToBeRemoved = checklist.tasks.first()
+        val response = mockMvc.perform(
+            delete("/checklists/${checklist.id}/tasks/${taskToBeRemoved.id}")
+                .with(jwt().jwt(jwt))
+                .with(csrf())
+        )
+            .andExpect(status().isOk)
+            .andExpect(content().contentType("application/json"))
+            .andReturn()
+        val updatedChecklist: Checklist = jackson.readValue(response.response.contentAsString)
+        val updatedChecklistInDb = checklistRepository.findById(checklist.id).get()
+        assertFalse(taskToBeRemoved in updatedChecklistInDb.tasks)
+        assertEquals(updatedChecklist, updatedChecklistInDb)
     }
 
 }
