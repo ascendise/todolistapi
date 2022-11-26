@@ -26,11 +26,10 @@ import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDate
-import javax.transaction.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc
-internal class TaskIntegrationTest {
+internal class TaskIT {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var userRepository: UserRepository

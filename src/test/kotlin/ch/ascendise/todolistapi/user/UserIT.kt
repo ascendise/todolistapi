@@ -4,7 +4,6 @@ import ch.ascendise.todolistapi.checklist.Checklist
 import ch.ascendise.todolistapi.checklist.ChecklistService
 import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.task.TaskService
-import com.ninjasquad.springmockk.clear
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.core.Is.`is`
@@ -25,12 +24,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDate
-import javax.transaction.Transactional
 
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class UserIntegrationTest {
+class UserIT {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var userRepository: UserRepository
