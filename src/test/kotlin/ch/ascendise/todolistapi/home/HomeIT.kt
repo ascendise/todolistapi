@@ -1,11 +1,11 @@
-package ch.ascendise.todolistapi
+package ch.ascendise.todolistapi.home
 
 import ch.ascendise.todolistapi.user.User
-import ch.ascendise.todolistapi.user.UserService
-import com.ninjasquad.springmockk.MockkBean
+import ch.ascendise.todolistapi.user.UserRepository
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
+import io.mockk.mockk
 import org.hamcrest.core.Is
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,30 +17,35 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import javax.transaction.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class HomeControllerTest {
+@Transactional
+internal class HomeIT {
 
-    @Autowired
-    private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var userRepository: UserRepository
 
     private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
-
-    @MockK
-    private lateinit var jwt: Jwt
-
-    @MockkBean
-    private lateinit var userService: UserService
+    private val jwt = mockk<Jwt>()
 
     @BeforeEach
-    fun setUp()
-    {
+    fun setUp() {
+        userRepository.save(user)
+        setUpMockJwt()
+    }
+
+    @AfterEach
+    fun tearDown() {
+        userRepository.deleteAll()
+    }
+
+    private fun setUpMockJwt() {
         every { jwt.subject }.returns(user.subject)
         every { jwt.getClaimAsString("given_name") }.returns(user.username)
-        every { jwt.hasClaim(any())}.answers { callOriginal() }
-        every { jwt.claims}.returns(mapOf( "name" to user.username, "sub" to user.subject))
-        every { userService.getUser(jwt) }.returns(user)
+        every { jwt.hasClaim(any()) }.answers { callOriginal() }
+        every { jwt.claims }.returns(mapOf("name" to user.username, "sub" to user.subject))
     }
 
     @Test

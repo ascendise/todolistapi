@@ -26,24 +26,15 @@ import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDate
-import javax.transaction.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Transactional
-class TaskIntegrationTest {
+internal class TaskIT {
 
-    @Autowired
-    private lateinit var mockMvc: MockMvc
-
-    @Autowired
-    private lateinit var userRepository: UserRepository
-
-    @Autowired
-    private lateinit var taskRepository: TaskRepository
-
+    @Autowired private lateinit var mockMvc: MockMvc
+    @Autowired private lateinit var userRepository: UserRepository
+    @Autowired private lateinit var taskRepository: TaskRepository
     private lateinit var jackson: ObjectMapper
-
     private val user = User(username = "Reanu Keeves", subject = "auth-oauth2|123451234512345")
     private val otherUser = User(username = "AidenPierce", subject = "auth-oauth2|543215432154321")
     private val tasks = setOf(Task(name = "Buy bread", description = "Wholegrain", user = user),
@@ -67,13 +58,13 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return 401 if not authorized`() {
+    fun `should return 401 if not authorized`() {
         mockMvc.perform(get("/tasks"))
             .andExpect(status().isUnauthorized)
     }
 
     @Test
-    fun `Return tasks for user`() {
+    fun `should return tasks for user`() {
         val jwt = getJwt(user)
         val result = mockMvc.perform(
             get("/tasks").with(jwt().jwt(jwt))
@@ -99,7 +90,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Correct format for GET all request`() {
+    fun `should return links to possible actions when GETting all tasks`() {
         val jwt = getJwt(user)
         val tasks = taskRepository.findAllByUserId(user.id)
         mockMvc.perform(
@@ -113,7 +104,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return specific task for user`() {
+    fun `should return specific task for user`() {
         val jwt = getJwt(user)
         val returnedTask = taskRepository.findAllByUserId(user.id)[0]
         val result = mockMvc.perform(
@@ -127,7 +118,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Correct format for GET request`() {
+    fun `should return links to possible operations when GETting single task`() {
         val jwt = getJwt(user)
         val task = taskRepository.findAllByUserId(user.id)[0]
         mockMvc.perform(
@@ -140,7 +131,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Correct format for POST request`() {
+    fun `should return possible operations for task on POST request`() {
         val jwt = getJwt(user)
         val newTask = Task(
             name = "Clean bathroom",
@@ -162,7 +153,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return task on POST request`() {
+    fun `should return created task on POST request`() {
         val newTask = Task(
             name = "Clean bathroom",
             description = "Close attention to sink",
@@ -190,7 +181,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return error when creating task with startDate before today`() {
+    fun `should return an error message when trying to create task with start date before today`() {
         val invalidTask = Task(
             name = "",
             startDate = LocalDate.now().minusDays(5),
@@ -209,7 +200,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return error when creating task with endDate before startDate`() {
+    fun `should return error when creating task with endDate before startDate`() {
         val invalidTask = Task(
             name = "Break time",
             description = "Let me finish this before I even started",
@@ -230,7 +221,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Only have to set important stuff in POST`() {
+    fun `should only have to set important stuff in POST`() {
         val jwt = getJwt(user)
         val taskJson = "{\n" +
                 "    \"id\": 0,\n" +
@@ -254,7 +245,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Change resource via PUT`() {
+    fun `should change resource via PUT`() {
         val oldTask = taskRepository.findAll().first()
         val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user)
         sendPUTRequest(newTask, oldTask.id)
@@ -276,7 +267,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return PUT request in HAL format`() {
+    fun `should return PUT request in HAL format`() {
         val oldTask = taskRepository.findAll().first()
         val newTask = Task(id = oldTask.id, name = "Do something else", description = "Some description", user = user)
         sendPUTRequest(newTask, oldTask.id)
@@ -286,14 +277,14 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `PUT request to nonexisting resource returns 404`() {
+    fun `should return 404 when sending PUT request to nonexisting resource`() {
         val newTask = Task(id = 50000, name = "Do something else", description = "Some description", user = user)
         sendPUTRequest(newTask, 50000)
             .andExpect(status().isNotFound)
     }
 
     @Test
-    fun `Only have to set important stuff in PUT`() {
+    fun `should only have to set important stuff in PUT`() {
         val jwt = getJwt(user)
         val taskJson = "{\n" +
                 "    \"id\": 0,\n" +
@@ -318,7 +309,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Delete task`() {
+    fun `should delete task when sending DELETE request`() {
         val task = tasks.elementAt(0)
         val jwt = getJwt(user)
         mockMvc.perform(
@@ -332,7 +323,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return 404 when trying to get task from other user`()
+    fun `should return 404 when trying to get task from other user`()
     {
         val jwt = getJwt(otherUser)
         val task = tasks.elementAt(0)
@@ -345,7 +336,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return 404 when trying to update a resource from another user`() {
+    fun `should return 404 when trying to update a resource from another user`() {
         val jwt = getJwt(otherUser)
         val task = tasks.elementAt(0)
         val newTask = Task(name = "pwned", description = "This is my task now", user = otherUser)
@@ -363,7 +354,7 @@ class TaskIntegrationTest {
     }
 
     @Test
-    fun `Return 204 when trying to delete a resource from another user but don't actually delete it`() {
+    fun `should return 204 when trying to delete a resource from another user but don't actually delete it`() {
         val jwt = getJwt(otherUser)
         val task = tasks.elementAt(0)
         mockMvc.perform(

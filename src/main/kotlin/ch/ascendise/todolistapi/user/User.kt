@@ -19,7 +19,7 @@ class User(
         if (id != other.id) return false
         if (subject != other.subject) return false
         if (username != other.username) return false
-
+        if (links != other.links) return false
         return true
     }
 

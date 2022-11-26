@@ -5,12 +5,10 @@ import ch.ascendise.todolistapi.checklist.ChecklistRepository
 import ch.ascendise.todolistapi.checklist.ChecklistService
 import ch.ascendise.todolistapi.user.User
 import com.ninjasquad.springmockk.MockkBean
-import io.mockk.every
-import io.mockk.justRun
-import io.mockk.slot
-import io.mockk.verify
+import io.mockk.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -19,20 +17,20 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDate
 import java.util.*
 
-@SpringBootTest
-class TaskServiceTest {
+internal class TaskServiceTest {
 
-    @Autowired
-    private lateinit var taskService: TaskService
+    private lateinit var service: TaskService
 
-    @MockkBean
-    private lateinit var checklistService: ChecklistService
+    private val checklistService = mockk<ChecklistService>()
+    private val taskRepository = mockk<TaskRepository>()
 
-    @MockkBean
-    private lateinit var taskRepository: TaskRepository
+    @BeforeEach
+    fun setUp() {
+        service = TaskService(taskRepository, checklistService)
+    }
 
     @Test
-    fun `Create new task`(){
+    fun `should create new task in database`(){
         val task = Task(
             name = "Test",
             description = "Test TaskService",
@@ -41,12 +39,12 @@ class TaskServiceTest {
             user = User(username = "", subject = "")
         )
         every { taskRepository.save(task) } returns task
-        taskService.create(task)
+        service.create(task)
         verify { taskRepository.save(task) }
     }
 
     @Test
-    fun `Can't create task with start date that starts after end date`()
+    fun `should throw InvalidTaskException if start date is after end date`()
     {
         val task = Task(
             name = "Test",
@@ -55,11 +53,11 @@ class TaskServiceTest {
             endDate = LocalDate.now(),
             user = User(username = "", subject = "")
         )
-        assertThrows<InvalidTaskException> { taskService.create(task) }
+        assertThrows<InvalidDateRangeTaskException> { service.create(task) }
     }
 
     @Test
-    fun `Create task with minimal information`()
+    fun `should allow to create task with minimal amount of information`()
     {
         val task = Task(
             name = "",
@@ -68,12 +66,12 @@ class TaskServiceTest {
             user = User(username = "", subject = "")
         )
         every { taskRepository.save(task) } returns task
-        taskService.create(task)
+        service.create(task)
         verify { taskRepository.save(task) }
     }
 
     @Test
-    fun `Create task with only a start date`()
+    fun `should allow to create task with start date only`()
     {
         val task = Task(
             name = "",
@@ -82,26 +80,12 @@ class TaskServiceTest {
             user = User(username = "", subject = "")
         )
         every { taskRepository.save(task) } returns task
-        taskService.create(task)
+        service.create(task)
         verify { taskRepository.save(task) }
     }
 
     @Test
-    fun `Create task with only an end date`()
-    {
-        val task = Task(
-            name = "",
-            description = "",
-            endDate = LocalDate.now(),
-            user = User(username = "", subject = "")
-        )
-        every { taskRepository.save(task) } returns task
-        taskService.create(task)
-        verify { taskRepository.save(task) }
-    }
-
-    @Test
-    fun `Can't create task that starts before today`()
+    fun `should throw exception if task start date is before today`()
     {
         val task = Task(
             name = "",
@@ -109,33 +93,34 @@ class TaskServiceTest {
             startDate = LocalDate.now().minusDays(1),
             user = User(username = "", subject = "")
         )
-        assertThrows<InvalidTaskException> { taskService.create(task) }
+        assertThrows<InvalidTaskException> { service.create(task) }
     }
 
     @Test
-    fun `Get tasks for user`()
+    fun `should return tasks for given user`()
     {
-        val task1 = Task(name = "Task1", description = "Task1", startDate = LocalDate.now(),
-            user = User(username = "", subject = ""))
-        val task2 = Task(name = "Task2", description = "Task2", endDate = LocalDate.now(),
-            user = User(username = "", subject = ""))
-        every { taskRepository.findAllByUserId(1) } returns listOf(task1, task2)
-        taskService.getAll(1)
-        verify { taskRepository.findAllByUserId(1) }
+        val user = User(id = 101, username = "John Doe", subject = "auth|12345")
+        val task1 = Task(id = 201, name = "Task1", description = "Task1", startDate = LocalDate.now(), user = user)
+        val task2 = Task(id = 202, name = "Task2", description = "Task2", endDate = LocalDate.now(), user = user)
+        every { taskRepository.findAllByUserId(101) } returns listOf(task1, task2)
+        service.getAll(101)
+        verify { taskRepository.findAllByUserId(101) }
     }
 
     @Test
-    fun `Delete task`()
+    fun `should delete task from repository`()
     {
-        justRun { taskRepository.deleteByIdAndUserId(1, 1) }
-        every { checklistService.getChecklists(1) } returns emptyList()
-        taskService.delete(1, 1)
-        verify { taskRepository.deleteByIdAndUserId(1, 1)}
-        verify { checklistService.getChecklists(1) }
+        val userId = 101L
+        val taskId = 201L
+        justRun { taskRepository.deleteByIdAndUserId(taskId, userId) }
+        every { checklistService.getChecklists(userId) } returns emptyList()
+        service.delete(userId, taskId)
+        verify { taskRepository.deleteByIdAndUserId(taskId, userId)}
+        verify { checklistService.getChecklists(userId) }
     }
 
     @Test
-    fun `Delete task that is part of checklists`() {
+    fun `should remove task from checklists and delete task`() {
         val user = User(id = 101, username = "", subject = "")
         val task = Task(id = 201, name = "Task", description = "Task1", startDate = LocalDate.now(), user = user)
         val checklist1 = Checklist(id = 301, name = "Checklist1", tasks = mutableListOf(task), user = user)
@@ -144,7 +129,7 @@ class TaskServiceTest {
         every { checklistService.getChecklists(user.id) } returns listOf(checklist1, checklist2, checklist3)
         every { checklistService.update(any()) } returnsArgument 0
         justRun { taskRepository.deleteByIdAndUserId(task.id, user.id) }
-        taskService.delete(101, 201)
+        service.delete(user.id, task.id)
         verify { checklistService.getChecklists(user.id) }
         verify {
             checklistService.update(withArg {
@@ -155,22 +140,24 @@ class TaskServiceTest {
     }
 
     @Test
-    fun `Return specific task`() {
-        val user = User(id = 1, subject = "auth-oauth2|123451234512345", username = "Max")
-        every { taskRepository.findByIdAndUserId(1, 1)} returns Optional.of(Task(name = "Dummy", user = user))
-        taskService.getById(user.id, 1)
-        verify { taskRepository.findByIdAndUserId(1, 1)}
+    fun `should return task with given user id`() {
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val task = Task(id = 201, name = "Dummy", user = user)
+        every { taskRepository.findByIdAndUserId(task.id, user.id)} returns Optional.of(task)
+        val returnedTask = service.getById(user.id, task.id)
+        assertEquals(task, returnedTask)
+        verify { taskRepository.findByIdAndUserId(task.id, user.id)}
     }
 
     @Test
-    fun `Throw exception when task is not found`() {
-        val user = User(id = 1, subject = "auth-oauth2|123451234512345", username = "Max")
-        every { taskRepository.findByIdAndUserId(101, 1) } returns Optional.empty()
-        assertThrows<TaskNotFoundException> { taskService.getById(user.id, 101) }
+    fun `should throw exception when task is not found`() {
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        every { taskRepository.findByIdAndUserId(201, user.id) } returns Optional.empty()
+        assertThrows<TaskNotFoundException> { service.getById(user.id, 201) }
     }
 
     @Test
-    fun `Update task should not require start date to be changed to today`() {
+    fun `should allow task with start date in past when updating`() {
         val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
         val oldTask = Task(id = 201, name = "Old Task", description = "This task has an old description",
             startDate = LocalDate.now().minusDays(1), isDone = false, user = user)
@@ -178,29 +165,51 @@ class TaskServiceTest {
             startDate = LocalDate.now().minusDays(1), isDone = true, user = user)
         every { taskRepository.findByIdAndUserId(oldTask.id, user.id) } returns Optional.of(oldTask)
         every {taskRepository.save(any()) } returnsArgument 0
-        assertDoesNotThrow { taskService.update(newTask) }
+        assertDoesNotThrow { service.update(newTask) }
         verify { taskRepository.findByIdAndUserId(oldTask.id, user.id) }
         verify {taskRepository.save(any<Task>()) }
     }
 
     @Test
-    fun `Update task`() {
+    fun `should update task`() {
         val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
         val oldTask = Task(id = 201, name = "Old Task", description = "This task has an old description", isDone = false, user = user)
         val newTask = Task(id = 201, name = "Updated Task", description = "This task has a new description", isDone = true, user = user)
         every { taskRepository.findByIdAndUserId(oldTask.id, user.id) } returns Optional.of(oldTask)
         every {taskRepository.save(any()) } returnsArgument 0
-        val updatedTask = taskService.update(newTask)
+        val updatedTask = service.update(newTask)
         verify { taskRepository.findByIdAndUserId(oldTask.id, user.id) }
         verify {taskRepository.save(any<Task>()) }
         assertEquals(updatedTask, newTask)
     }
 
     @Test
-    fun `Throw TaskNotFoundException if task was not found`() {
-        val user = User(id = 1, subject = "auth-oauth2|123451234512345", username = "Max")
-        val task = Task(id = 1, name = "Updated Task", description = "This task has a new description", user = user)
+    fun `should throw TaskNotFoundException when task to be updated was not found`() {
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val task = Task(id = 201, name = "Updated Task", description = "This task has a new description", user = user)
         every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.empty()
-        assertThrows<TaskNotFoundException> { taskService.update(task) }
+        assertThrows<TaskNotFoundException> { service.update(task) }
+        verify { taskRepository.findByIdAndUserId(task.id, user.id) }
+    }
+
+    @Test
+    fun `should throw InvalidDateRangeTaskException if updated task has start date before end date `() {
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val oldTask = Task(id = 201, name = "Old Task", user = user)
+        val task = Task(id = 201, name = "Updated Task", user = user, endDate = LocalDate.now().minusDays(1))
+        every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(oldTask)
+        assertThrows<InvalidDateRangeTaskException> { service.update(task) }
+        verify { taskRepository.findByIdAndUserId(task.id, user.id) }
+    }
+
+    @Test
+    fun `should throw InvalidDateRangeTaskException if new start date is before old start date`() {
+
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val oldTask = Task(id = 201, name = "Old Task", user = user, startDate = LocalDate.now().plusDays(2))
+        val task = Task(id = 201, name = "Updated Task", user = user, endDate = LocalDate.now().plusDays(1))
+        every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(oldTask)
+        assertThrows<InvalidDateRangeTaskException> { service.update(task) }
+        verify { taskRepository.findByIdAndUserId(task.id, user.id) }
     }
 }

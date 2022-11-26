@@ -1,284 +1,156 @@
 package ch.ascendise.todolistapi.checklist
 
+import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.task.Task
+import ch.ascendise.todolistapi.task.TaskController
+import ch.ascendise.todolistapi.task.TaskModelAssembler
+import ch.ascendise.todolistapi.task.TaskResponseDto
 import ch.ascendise.todolistapi.user.User
-import ch.ascendise.todolistapi.user.UserService
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.fasterxml.jackson.module.kotlin.treeToValue
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
+import io.mockk.justRun
+import io.mockk.mockk
 import io.mockk.verify
-import org.hamcrest.core.Is
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.junit.jupiter.api.assertThrows
+import org.springframework.hateoas.CollectionModel
+import org.springframework.hateoas.server.mvc.linkTo
+import org.springframework.http.ResponseEntity
+import java.net.URI
 
-@SpringBootTest
-@AutoConfigureMockMvc
-class ChecklistControllerTest {
+internal class ChecklistControllerTest
+{
+    private lateinit var controller: ChecklistController
 
-    @Autowired
-    private lateinit var mockMvc: MockMvc
-
-    @MockK
-    private lateinit var jwt: Jwt
-    @MockkBean
-    private lateinit var checklistService: ChecklistService
-    @MockkBean
-    private lateinit var userService: UserService
-
-    private val jackson = jacksonObjectMapper()
-        .registerModule(JavaTimeModule())
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-
-    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
+    private val checklistService = mockk<ChecklistService>()
+    private val checklistModelAssembler = ChecklistModelAssembler(TaskModelAssembler())
+    private val user = User(id = 101, username = "Max Muster", subject = "auth|54321")
 
     @BeforeEach
-    fun setUp(){
-        every { jwt.subject }.returns(user.subject)
-        every { jwt.getClaimAsString("given_name") }.returns(user.username)
-        every { jwt.hasClaim(any())}.answers { callOriginal() }
-        every { jwt.claims}.returns(mapOf( "name" to user.username, "sub" to user.subject))
-        every { userService.getUser(jwt) } returns user
+    fun setUp() {
+        controller = ChecklistController(checklistService, checklistModelAssembler)
     }
 
     @Test
-    fun `Fetch all checklists of user`() {
-        val returnedChecklists = listOf(
-            Checklist(id = 101, name = "New Checklist1", user = user),
-            Checklist(id = 102, name = "New Checklist2", user = user),
-            Checklist(id = 103, name = "New Checklist3", user = user))
-        every { checklistService.getChecklists(user.id) } returns returnedChecklists
-        val result = mockMvc.perform(
-            get("/checklists")
-                .with(jwt().jwt(jwt))
+    fun `should return list of checklists associated with user`() {
+        val checklists = listOf(
+            Checklist(id = 301, name = "Checklist1", tasks = mutableListOf(
+                Task(id = 201, name = "Task1", user = user),
+                Task(id = 202, name = "Task2", user = user)
+            ), user = user),
+            Checklist(id = 302, name = "Checklist2", user = user)
         )
-            .andExpect(status().isOk)
-            .andReturn()
-        verify { checklistService.getChecklists(user.id) }
-        val jsonNode = jackson.readTree(result.response.contentAsString)
-        val checklists: List<ChecklistResponseDto> = jackson.treeToValue(jsonNode.at("/_embedded/checklists"))
-        val expectedChecklists = returnedChecklists.map { it.toChecklistResponseDto() }.toList()
-        assertEquals(expectedChecklists, checklists)
-    }
-
-    @Test
-    fun `Fetch empty list of checklists`() {
-        every { checklistService.getChecklists(user.id) } returns emptyList()
-        val result = mockMvc.perform(
-            get("/checklists")
-                .with(jwt().jwt(jwt))
-        )
-            .andExpect(status().isOk)
-            .andReturn()
-        verify { checklistService.getChecklists(user.id) }
-        val node = jackson.readTree(result.response.contentAsString)
-        assertTrue(node.findPath("/_embedded/checklists").isMissingNode)
-    }
-
-    @Test
-    fun `Fetch single checklist`() {
-        val returnedChecklist = Checklist(id = 100, name = "New Checklist", user = user)
-        every { checklistService.getChecklist(returnedChecklist.id, user.id) } returns returnedChecklist
-        val result = mockMvc.perform(
-            get("/checklists/${returnedChecklist.id}")
-                .with(jwt().jwt(jwt))
-        )
-            .andExpect(status().isOk)
-            .andReturn()
-        verify { checklistService.getChecklist(returnedChecklist.id, user.id) }
-        val checklist: ChecklistResponseDto = jackson.readValue(result.response.contentAsString)
-        val expectedChecklist = returnedChecklist.toChecklistResponseDto()
-        assertEquals(expectedChecklist, checklist)
-    }
-
-    @Test
-    fun `Return 404 if checklist was not found`() {
-        val id = -1L
-        every { checklistService.getChecklist(id, user.id) } throws ChecklistNotFoundException()
-        mockMvc.perform(
-            get("/checklists/$id")
-                .with(jwt().jwt(jwt))
-        )
-            .andExpect(status().isNotFound)
-            .andReturn()
-        verify { checklistService.getChecklist(id, user.id) }
-    }
-
-    @Test
-    fun `Create new checklist`() {
-        val returnedChecklist = Checklist(id = 101, name = "ReadList", user = user)
-        val checklistJson = "{\"name\":\"ReadList\"}"
-        every { checklistService.create( match { it.name == "ReadList" } ) } returns returnedChecklist
-        val result = mockMvc.perform(
-            post("/checklists")
-                .with(jwt().jwt(jwt))
-                .with(csrf())
-                .content(checklistJson)
-                .contentType("application/json")
-        )
-            .andExpect(status().isCreated)
-            .andReturn()
-        verify { checklistService.create(any()) }
-        val checklist: ChecklistResponseDto = jackson.readValue(result.response.contentAsString)
-        val expectedChecklist = returnedChecklist.toChecklistResponseDto()
-        assertEquals(expectedChecklist, checklist)
-    }
-
-    @Test
-    fun `Update existing checklist`() {
-        val checklistJson = "{\"name\":\"DescriptiveNameForCollectionOfTasks\"}"
-        val returnedChecklist = Checklist(id = 101, name = "DescriptiveNameForCollectionOfTasks", user = user)
-        every {
-            checklistService.update(match { it.name == "DescriptiveNameForCollectionOfTasks" })
-        } returns returnedChecklist
-        val result = mockMvc.perform(
-            put("/checklists/1")
-                .with(jwt().jwt(jwt))
-                .with(csrf())
-                .content(checklistJson)
-                .contentType("application/json")
-        )
-            .andExpect(status().isOk)
-            .andReturn()
-        verify { checklistService.update(any()) }
-        val checklist: ChecklistResponseDto = jackson.readValue(result.response.contentAsString)
-        val expectedChecklist = returnedChecklist.toChecklistResponseDto()
-        assertEquals(expectedChecklist, checklist)
-    }
-
-    @Test
-    fun `Return 404 when trying to update nonexisting checklist`() {
-        val checklistJson = "{\"name\":\"SomeChecklistName\"}"
-        every { checklistService.update(any()) } throws ChecklistNotFoundException()
-        mockMvc.perform(
-            put("/checklists/-1")
-                .with(jwt().jwt(jwt))
-                .with(csrf())
-                .content(checklistJson)
-                .contentType("application/json")
-        )
-            .andExpect(status().isNotFound)
-            .andReturn()
-        verify { checklistService.update(any()) }
-    }
-
-    @Test
-    fun `Delete checklist`() {
-        val id = 101L
-        every { checklistService.delete(id, user.id) } returns Unit
-        mockMvc.perform(
-            delete("/checklists/$id")
-                .with(jwt().jwt(jwt))
-                .with(csrf())
-        )
-            .andExpect(status().isNoContent)
-            .andReturn()
-        verify { checklistService.delete(id, user.id) }
-    }
-
-    @Test
-    fun `Correct format for GET request`() {
-        val task1 = Task(id = 201, name = "Task1", user = user)
-        val task2 = Task(id = 202, name = "Task2", user = user)
-        val task3 = Task(id = 203, name = "Task3", user = user)
+        every { checklistService.getChecklists(user.id) } returns checklists
+        val response = controller.getChecklists(user)
         val expectedChecklists = listOf(
-            Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2)),
-            Checklist(id = 102, name = "New Checklist2", user = user, tasks = mutableListOf(task3)))
-        every { checklistService.getChecklists(user.id) } returns expectedChecklists
-        mockMvc.perform(
-            get("/checklists")
-                .with(jwt().jwt(jwt))
+            ChecklistResponseDto(id = 301, name = "Checklist1", tasks = mutableListOf(
+                TaskResponseDto(id = 201, name = "Task1"),
+                TaskResponseDto(id = 202, name = "Task2")
+            )),
+            ChecklistResponseDto(id = 302, name = "Checklist2")
         )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType("application/hal+json"))
-            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists")))
-            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("_embedded.checklists[0]._links.self.href", Is.`is`("http://localhost/checklists/101")))
-            .andExpect(jsonPath("_embedded.checklists[0]._links.checklists.href", Is.`is`("http://localhost/checklists")))
-            .andExpect(jsonPath("_embedded.checklists[0]._links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("_embedded.checklists[0].tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
-            .andExpect(jsonPath("_embedded.checklists[0].tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
-            .andExpect(jsonPath("_embedded.checklists[0].tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
-            .andReturn()
+        addExpectedLinks(expectedChecklists[0])
+        addExpectedLinks(expectedChecklists[1])
+        val expectedResponse = CollectionModel.of(expectedChecklists,
+            linkTo<ChecklistController> { getChecklists(user) }.withSelfRel(),
+            linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations")
+        )
+        assertEquals(expectedResponse, response)
+        verify { checklistService.getChecklists(user.id) }
+    }
+
+    private fun addExpectedLinks(dto: ChecklistResponseDto) {
+        dto.add(
+            linkTo<ChecklistController> { getChecklist(dto.id, user) }.withSelfRel(),
+            linkTo<ChecklistController> { getChecklists(user) }.withRel("checklists"),
+            linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations")
+        )
+        dto.tasks.forEach { addExpectedLinks(it) }
+    }
+
+    private fun addExpectedLinks(dto: TaskResponseDto) {
+        dto.add(
+            linkTo<TaskController> { getTask(user, dto.id) }.withSelfRel(),
+            linkTo<TaskController> { getTasks(user) }.withRel("tasks")
+        )
     }
 
     @Test
-    fun `Correct format for GET single checklist`() {
-        val task1 = Task(id = 201, name = "Task1", user = user)
-        val task2 = Task(id = 202, name = "Task2", user = user)
-        val checklist = Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2))
-        every { checklistService.getChecklist(checklist.id, user.id) } returns checklist
-        mockMvc.perform(
-            get("/checklists/${checklist.id}")
-                .with(jwt().jwt(jwt))
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType("application/hal+json"))
-            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
-            .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
-            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andExpect(jsonPath("tasks[0]._links.self.href", Is.`is`("http://localhost/tasks/201")))
-            .andExpect(jsonPath("tasks[0]._links.tasks.href", Is.`is`("http://localhost/tasks")))
-            .andExpect(jsonPath("tasks[0]._links.removeTask.href", Is.`is`("http://localhost/checklists/101/tasks/201")))
-            .andReturn()
+    fun `should return specified checklist`() {
+        val checklistId = 301L
+        val checklist = Checklist(id = 301, name = "Checklist1", user = user, tasks = mutableListOf(
+            Task(id = 201, name = "Task1", user = user),
+            Task(id = 202, name = "Task2", user = user)
+        ))
+        every { checklistService.getChecklist(checklistId, user.id) } returns checklist
+        val response = controller.getChecklist(checklistId, user)
+        val expectedResponse = ChecklistResponseDto(id = 301 , name = "Checklist1", tasks = mutableListOf(
+            TaskResponseDto(id = 201, name = "Task1"),
+            TaskResponseDto(id = 202, name = "Task2")
+        )).apply { addExpectedLinks(this) }
+        assertEquals(expectedResponse, response)
+        verify { checklistService.getChecklist(checklistId, user.id) }
     }
 
     @Test
-    fun `Correct format for POST checklist`() {
-        val task1 = Task(id = 201, name = "Task1", user = user)
-        val task2 = Task(id = 202, name = "Task2", user = user)
-        val checklist = Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2))
-        val checklistJson = jackson.writeValueAsString(checklist)
-        every { checklistService.create(any()) } returns checklist
-        mockMvc.perform(
-            post("/checklists/")
-                .with(jwt().jwt(jwt))
-                .with(csrf())
-                .content(checklistJson)
-                .contentType("application/json")
-        )
-            .andExpect(status().isCreated)
-            .andExpect(content().contentType("application/hal+json"))
-            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
-            .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
-            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andReturn()
+    fun `should throw ChecklistNotFoundException when getting nonexisting checklist`() {
+        val checklistId = 999L
+        every { checklistService.getChecklist(checklistId, user.id) } throws ChecklistNotFoundException()
+        assertThrows<ChecklistNotFoundException> { controller.getChecklist(checklistId, user) }
+        verify { checklistService.getChecklist(checklistId, user.id) }
     }
 
     @Test
-    fun `Correct format for PUT checklist`() {
-        val task1 = Task(id = 201, name = "Task1", user = user)
-        val task2 = Task(id = 202, name = "Task2", user = user)
-        val checklist = Checklist(id = 101, name = "New Checklist1", user = user, tasks = mutableListOf(task1, task2))
-        val checklistJson = jackson.writeValueAsString(checklist)
-        every { checklistService.update(any()) } returns checklist
-        mockMvc.perform(
-            put("/checklists/${checklist.id}")
-                .with(jwt().jwt(jwt))
-                .with(csrf())
-                .content(checklistJson)
-                .contentType("application/json")
-        )
-            .andExpect(status().isOk)
-            .andExpect(content().contentType("application/hal+json"))
-            .andExpect(jsonPath("_links.self.href", Is.`is`("http://localhost/checklists/101")))
-            .andExpect(jsonPath("_links.checklists.href", Is.`is`("http://localhost/checklists")))
-            .andExpect(jsonPath("_links.relations.href", Is.`is`("http://localhost/checklists/tasks")))
-            .andReturn()
+    fun `should create Checklist and return the created entity`() {
+        every { checklistService.create(Checklist(name = "Checklist1", user = user)) } returnsArgument 0
+        val request = ChecklistRequestDto(name = "Checklist1")
+        val response = controller.create(user, request)
+        val expectedBody = ChecklistResponseDto(id = 0, name = "Checklist1").apply { addExpectedLinks(this) }
+        val expectedResponse = ResponseEntity
+            .created(URI.create("/checklists/0"))
+            .body(expectedBody)
+        assertEquals(expectedResponse, response)
+        verify { checklistService.create(Checklist(name = "Checklist1", user = user)) }
+    }
+
+    @Test
+    fun `should update checklist with given id and return updated checklist`() {
+        every { checklistService.update(Checklist(id = 301, name = "Checklist2", user = user)) } returnsArgument 0
+        val checklistId = 301L
+        val request = ChecklistRequestDto(name = "Checklist2")
+        val response = controller.update(checklistId, user, request)
+        val expectedBody = ChecklistResponseDto(id = 301, name = "Checklist2").apply { addExpectedLinks(this) }
+        val expectedResponse = ResponseEntity.ok(expectedBody)
+        assertEquals(expectedResponse, response)
+        verify { checklistService.update(Checklist(id = 301, name = "Checklist2", user = user)) }
+    }
+
+    @Test
+    fun `should throw ChecklistNotFoundException when trying to update nonexisting checklist`() {
+        val checklistId = 999L
+        every {
+            checklistService.update(Checklist(id = 999, name = "Checklist2", user = user))
+        } throws ChecklistNotFoundException()
+        val request = ChecklistRequestDto(name = "Checklist2")
+        assertThrows<ChecklistNotFoundException> { controller.update(checklistId, user, request) }
+        verify { checklistService.update(Checklist(id = 999, name = "Checklist2", user = user)) }
+    }
+
+    @Test
+    fun `should delete specified checklist and return a No Content response`() {
+        val checklistId = 301L
+        justRun { checklistService.delete(checklistId, user.id) }
+        val response = controller.delete(checklistId, user)
+        val expectedResponse = ResponseEntity.noContent().build<Any>()
+        assertEquals(expectedResponse, response)
+        verify { checklistService.delete(checklistId, user.id) }
+    }
+
+    @Test
+    fun `should return "Not Found"`() {
+        val response = controller.checklistNotFoundException()
+        val expectedResponse = ResponseEntity.notFound().build<Any>()
+        assertEquals(expectedResponse, response)
     }
 }
