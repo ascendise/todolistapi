@@ -1,11 +1,8 @@
-package ch.ascendise.todolistapi
+package ch.ascendise.todolistapi.home
 
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserRepository
-import ch.ascendise.todolistapi.user.UserService
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import org.hamcrest.core.Is
 import org.junit.jupiter.api.AfterEach
@@ -20,10 +17,12 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
+import javax.transaction.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class HomeIntegrationTest {
+@Transactional
+internal class HomeIntegrationTest {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var userRepository: UserRepository
