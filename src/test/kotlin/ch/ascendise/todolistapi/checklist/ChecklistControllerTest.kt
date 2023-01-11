@@ -54,7 +54,7 @@ internal class ChecklistControllerTest
         addExpectedLinks(expectedChecklists[1])
         val expectedResponse = CollectionModel.of(expectedChecklists,
             linkTo<ChecklistController> { getChecklists(user) }.withSelfRel(),
-            linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations")
+            linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations"),
         )
         assertEquals(expectedResponse, response)
         verify { checklistService.getChecklists(user.id) }
@@ -64,7 +64,7 @@ internal class ChecklistControllerTest
         dto.add(
             linkTo<ChecklistController> { getChecklist(dto.id, user) }.withSelfRel(),
             linkTo<ChecklistController> { getChecklists(user) }.withRel("checklists"),
-            linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations")
+            linkTo<ChecklistTaskController> { getRelations(user) }.withRel("relations"),
         )
         dto.tasks.forEach { addExpectedLinks(it) }
     }
@@ -152,5 +152,15 @@ internal class ChecklistControllerTest
         val response = controller.checklistNotFoundException()
         val expectedResponse = ResponseEntity.notFound().build<Any>()
         assertEquals(expectedResponse, response)
+    }
+
+    @Test
+    fun `should complete checklist and return no content`() {
+        val checklistId = 301L
+        justRun { checklistService.complete(checklistId, user.id) }
+        val response = controller.complete(checklistId, user);
+        val expectedResponse = ResponseEntity.noContent().build<Any>()
+        assertEquals(expectedResponse, response)
+        verify { checklistService.complete(checklistId, user.id) }
     }
 }

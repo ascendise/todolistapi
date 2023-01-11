@@ -4,11 +4,12 @@ import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.task.TaskController
 import ch.ascendise.todolistapi.task.TaskModelAssembler
-import ch.ascendise.todolistapi.task.TaskResponseDto
 import ch.ascendise.todolistapi.user.User
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.hateoas.Links
 import org.springframework.hateoas.server.mvc.linkTo
 
 internal class ChecklistModelAssemblerTest
@@ -23,39 +24,65 @@ internal class ChecklistModelAssemblerTest
     }
 
     @Test
-    fun `should return checklist with links to operations`() {
+    fun `toModel() should return checklist with links to operations`() {
+        //Arrange
         val checklist = Checklist(id = 301, name = "Checklist1", user = user)
+        //Act
         val model = checklistModelAssembler.toModel(checklist)
-        val expectedModel = ChecklistResponseDto(id = 101, name = "Checklist1", tasks = mutableListOf())
-        expectedModel.add(
+        //Assert
+        var expectedLinks = listOf(
             linkTo<ChecklistController> { getChecklist(checklist.id, checklist.user) }.withSelfRel(),
             linkTo<ChecklistController> { getChecklists(checklist.user) }.withRel("checklists"),
-            linkTo<ChecklistTaskController> { getRelations(checklist.user) }.withRel("relations")
+            linkTo<ChecklistTaskController> { getRelations(checklist.user) }.withRel("relations"),
+            linkTo<ChecklistController> { complete(checklist.id, checklist.user)  }.withRel("complete")
         )
-        assertEquals(expectedModel, model)
+        assertEquals(expectedLinks, model.links.toList())
     }
 
     @Test
-    fun `should include links with every task in checklist`() {
+    fun `toModel() should include links with every task in checklist`() {
+        //Arrange
         val checklist = Checklist(id = 301, name = "Checklsit1", user = user, tasks = mutableListOf(
-            Task(id = 201, name = "Task1", user = user),
-            Task(id = 202, name = "Task2", user = user)
+            Task(id = 201, name = "Task1", user = user)
         ))
+        //Act
         val model = checklistModelAssembler.toModel(checklist)
-        val expectedTaskModels = mutableListOf(
-            TaskResponseDto(id = 201, name = "Task1").apply { addExpectedTasks(this, 301) },
-            TaskResponseDto(id = 202, name = "Task2").apply { addExpectedTasks(this, 301)}
-        )
-        assertEquals(expectedTaskModels, model.tasks)
-    }
-
-    private fun addExpectedTasks(dto: TaskResponseDto, checklistId: Long) {
-        dto.add(
-            linkTo<TaskController> { getTask(user, dto.id) }.withSelfRel(),
+        //Assert
+        val expectedTaskLinks = listOf(
+            linkTo<TaskController> { getTask(user, checklist.tasks[0].id) }.withSelfRel(),
             linkTo<TaskController> { getTasks(user) }.withRel("tasks"),
             linkTo<ChecklistTaskController> {
-                removeRelation(user, checklistId, dto.id)
+                removeRelation(user, checklist.id, checklist.tasks[0].id)
             }.withRel("removeTask")
         )
+        assertEquals(expectedTaskLinks, model.tasks[0].links.toList())
+    }
+
+    @Test
+    fun `toModel() should include link to complete operation if all tasks are done`() {
+        //Arrange
+        val checklist = Checklist(id = 301, name = "Checklist1", user = user, tasks = mutableListOf(
+            Task(id = 201, name = "Task1", user = user, isDone = true),
+            Task(id = 202, name = "Task2", user = user, isDone = true)))
+        //Act
+        val model = checklistModelAssembler.toModel(checklist)
+        //Assert
+        val completeLink = model.links.getLink("complete").orElse(null)
+        assertNotNull(completeLink)
+        var expectedLink = linkTo<ChecklistController> { complete(checklist.id, user) }.withRel("complete")
+        assertEquals(expectedLink, completeLink)
+    }
+
+    @Test
+    fun `toModel() should not include link to complete operation if there are undone tasks`() {
+        //Arrange
+        val checklist = Checklist(id = 301, name = "Checklist1", user = user, tasks = mutableListOf(
+            Task(id = 201, name = "Task1", user = user, isDone = false),
+            Task(id = 202, name = "Task2", user = user, isDone = true)))
+        //Act
+        val model = checklistModelAssembler.toModel(checklist)
+        //Assert
+        val completeLink = model.links.getLink("complete").orElse(null)
+        assertNull(completeLink)
     }
 }

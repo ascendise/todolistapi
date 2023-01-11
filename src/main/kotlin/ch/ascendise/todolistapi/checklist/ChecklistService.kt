@@ -1,10 +1,12 @@
 package ch.ascendise.todolistapi.checklist
 
+import ch.ascendise.todolistapi.task.TaskService
 import org.springframework.stereotype.Service
 
 @Service
 class ChecklistService(
-    val checklistRepository: ChecklistRepository
+    val checklistRepository: ChecklistRepository,
+    val taskService: TaskService
 ) {
 
     fun getChecklists(userId: Long) : List<Checklist> =
@@ -25,4 +27,14 @@ class ChecklistService(
 
     fun delete(checklistId: Long, userId: Long) =
         checklistRepository.deleteByIdAndUserId(checklistId, userId)
+
+    fun complete(checklistId: Long, userId: Long) {
+        val checklist = checklistRepository.findByIdAndUserId(checklistId, userId)
+            .orElseThrow { ChecklistNotFoundException() }
+        if (checklist.tasks.any { !it.isDone }) {
+            throw ChecklistIncompleteException();
+        }
+        checklist.tasks.map { it.id }.forEach { taskService.delete(userId, it) }
+        delete(checklistId, userId)
+    }
 }
