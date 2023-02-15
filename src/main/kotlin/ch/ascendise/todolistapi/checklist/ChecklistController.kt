@@ -4,9 +4,7 @@ import ch.ascendise.todolistapi.ApiError
 import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
-import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
-import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import org.springframework.hateoas.CollectionModel
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpStatus
