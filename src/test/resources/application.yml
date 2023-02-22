@@ -5,3 +5,5 @@ spring:
         jwt:
           issuer-uri: issuer-uri
           jwk-set-uri:  http://authorization-server.dev/.well-known/jwks.json
+oauth2:
+  audience: https://aud.myapi.com
