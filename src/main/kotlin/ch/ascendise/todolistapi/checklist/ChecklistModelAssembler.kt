@@ -19,6 +19,12 @@ class ChecklistModelAssembler(
             linkTo<ChecklistController> { getChecklists(checklist.user) }.withRel("checklists"),
             linkTo<ChecklistTaskController> { getRelations(checklist.user) }.withRel("relations")
         )
+        if(allTasksAreDone(checklist))
+        {
+            var completionLink = linkTo<ChecklistController> { complete(checklist.id, checklist.user) }
+                .withRel("complete")
+            checklistDto.add(completionLink)
+        }
         checklistDto.tasks.stream()
             .map { taskModelAssembler.toModel(it, checklist.user) }
             .map {
@@ -29,4 +35,7 @@ class ChecklistModelAssembler(
             .collect(Collectors.toList())
         return checklistDto
     }
+
+    fun allTasksAreDone(checklist: Checklist): Boolean
+        = checklist.tasks.all { it.isDone }
 }

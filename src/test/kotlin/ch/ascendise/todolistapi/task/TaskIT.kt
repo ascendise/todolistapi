@@ -1,6 +1,8 @@
 package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.ApiError
+import ch.ascendise.todolistapi.checklist.Checklist
+import ch.ascendise.todolistapi.checklist.ChecklistRepository
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserRepository
 import com.fasterxml.jackson.databind.DeserializationFeature
@@ -26,14 +28,17 @@ import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.time.LocalDate
+import javax.transaction.Transactional
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 internal class TaskIT {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var userRepository: UserRepository
     @Autowired private lateinit var taskRepository: TaskRepository
+    @Autowired private lateinit var checklistRepository: ChecklistRepository
     private lateinit var jackson: ObjectMapper
     private val user = User(username = "Reanu Keeves", subject = "auth-oauth2|123451234512345")
     private val otherUser = User(username = "AidenPierce", subject = "auth-oauth2|543215432154321")
@@ -309,9 +314,12 @@ internal class TaskIT {
     }
 
     @Test
-    fun `should delete task when sending DELETE request`() {
+    fun `DELETE request should delete task`()
+    {
+        //Arrange
         val task = tasks.elementAt(0)
         val jwt = getJwt(user)
+        //Act
         mockMvc.perform(
             delete("/tasks/${task.id}")
                 .with(jwt().jwt(jwt))
@@ -319,7 +327,30 @@ internal class TaskIT {
         )
             .andExpect(status().isNoContent)
             .andExpect(content().string(""))
+        //Assert
         assertFalse(taskRepository.existsById(task.id))
+    }
+
+    @Test
+    fun `DELETE request should delete task even if it is part of checklists`()
+    {
+        //Arrange
+        val task = tasks.elementAt(0)
+        var checklist = Checklist(name = "Checklist", tasks = mutableListOf(task), user = user)
+        checklist = checklistRepository.save(checklist)
+        val jwt = getJwt(user)
+        //Act
+        mockMvc.perform(
+            delete("/tasks/${task.id}")
+                .with(jwt().jwt(jwt))
+                .with(csrf())
+        )
+            .andExpect(status().isNoContent)
+            .andExpect(content().string(""))
+        //Assert
+        assertFalse(taskRepository.existsById(task.id))
+        checklist = checklistRepository.findByIdAndUserId(checklist.id, user.id).get()
+        assertFalse(checklist.tasks.contains(task))
     }
 
     @Test

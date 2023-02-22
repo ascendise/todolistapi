@@ -145,7 +145,7 @@ internal class TaskControllerTest {
     }
 
     @Test
-    fun `should return a "Not Found" response for TaskNotFoundException`() {
+    fun `should return a 'Not Found' response for TaskNotFoundException`() {
         val response = controller.taskNotFoundException(TaskNotFoundException())
         val expectedResponse = ResponseEntity.notFound().build<ApiError>()
         assertEquals(expectedResponse, response)

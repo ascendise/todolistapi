@@ -1,10 +1,9 @@
 package ch.ascendise.todolistapi.task
 
 import ch.ascendise.todolistapi.checklist.Checklist
-import ch.ascendise.todolistapi.checklist.ChecklistRepository
 import ch.ascendise.todolistapi.checklist.ChecklistService
+import ch.ascendise.todolistapi.checklisttask.ChecklistTaskService
 import ch.ascendise.todolistapi.user.User
-import com.ninjasquad.springmockk.MockkBean
 import io.mockk.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -12,8 +11,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
 import java.time.LocalDate
 import java.util.*
 
@@ -21,12 +18,12 @@ internal class TaskServiceTest {
 
     private lateinit var service: TaskService
 
-    private val checklistService = mockk<ChecklistService>()
+    private val checklistTaskService = mockk<ChecklistTaskService>()
     private val taskRepository = mockk<TaskRepository>()
 
     @BeforeEach
     fun setUp() {
-        service = TaskService(taskRepository, checklistService)
+        service = TaskService(taskRepository, checklistTaskService)
     }
 
     @Test
@@ -113,30 +110,10 @@ internal class TaskServiceTest {
         val userId = 101L
         val taskId = 201L
         justRun { taskRepository.deleteByIdAndUserId(taskId, userId) }
-        every { checklistService.getChecklists(userId) } returns emptyList()
+        justRun { checklistTaskService.removeTaskFromAllChecklists(taskId, userId) }
         service.delete(userId, taskId)
         verify { taskRepository.deleteByIdAndUserId(taskId, userId)}
-        verify { checklistService.getChecklists(userId) }
-    }
-
-    @Test
-    fun `should remove task from checklists and delete task`() {
-        val user = User(id = 101, username = "", subject = "")
-        val task = Task(id = 201, name = "Task", description = "Task1", startDate = LocalDate.now(), user = user)
-        val checklist1 = Checklist(id = 301, name = "Checklist1", tasks = mutableListOf(task), user = user)
-        val checklist2 = Checklist(id = 302, name = "Checklist2", tasks = mutableListOf(task), user = user)
-        val checklist3 = Checklist(id = 303, name = "Checklist3", tasks = mutableListOf(), user = user)
-        every { checklistService.getChecklists(user.id) } returns listOf(checklist1, checklist2, checklist3)
-        every { checklistService.update(any()) } returnsArgument 0
-        justRun { taskRepository.deleteByIdAndUserId(task.id, user.id) }
-        service.delete(user.id, task.id)
-        verify { checklistService.getChecklists(user.id) }
-        verify {
-            checklistService.update(withArg {
-                assertFalse(it.tasks.contains(task))
-            })
-        }
-        verify { taskRepository.deleteByIdAndUserId(task.id, user.id)}
+        verify { checklistTaskService.removeTaskFromAllChecklists(taskId, userId) }
     }
 
     @Test

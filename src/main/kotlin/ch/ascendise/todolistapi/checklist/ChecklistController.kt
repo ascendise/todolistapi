@@ -1,11 +1,10 @@
 package ch.ascendise.todolistapi.checklist
 
+import ch.ascendise.todolistapi.ApiError
 import ch.ascendise.todolistapi.checklisttask.ChecklistTaskController
 import ch.ascendise.todolistapi.user.CurrentUser
 import ch.ascendise.todolistapi.user.User
-import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
-import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import org.springframework.hateoas.CollectionModel
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpStatus
@@ -61,9 +60,28 @@ class ChecklistController(
         return ResponseEntity.noContent().build()
     }
 
+    @PostMapping("/checklists/{id}/complete")
+    fun complete(@PathVariable id: Long, @CurrentUser user: User): ResponseEntity<Any> {
+        service.complete(id, user.id)
+        return ResponseEntity.noContent().build()
+    }
+
     @ResponseBody
     @ExceptionHandler(ChecklistNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun checklistNotFoundException(): ResponseEntity<Any> =
         ResponseEntity.notFound().build()
+
+    @ResponseBody
+    @ExceptionHandler(ChecklistIncompleteException::class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    fun checklistIncompleteException(): ResponseEntity<ApiError> {
+        var error = ApiError(
+            statusCode = 400,
+            name = "Bad Request",
+            description = "Failed to complete checklist. Not all tasks are marked done. " +
+                    "Did you mean to use query parameter 'force' or 'partial'?"
+        )
+        return ResponseEntity.badRequest().body(error)
+    }
 }
