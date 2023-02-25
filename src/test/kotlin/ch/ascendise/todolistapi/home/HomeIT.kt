@@ -2,6 +2,7 @@ package ch.ascendise.todolistapi.home
 
 import ch.ascendise.todolistapi.user.User
 import ch.ascendise.todolistapi.user.UserRepository
+import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.core.Is
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.context.support.WithAnonymousUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.MockMvc
@@ -26,6 +28,7 @@ internal class HomeIT {
 
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var userRepository: UserRepository
+    @MockkBean private lateinit var jwtDecoder: JwtDecoder
 
     private val user = User(id = 100, subject = "auth-oauth2|123451234512345")
     private val jwt = mockk<Jwt>()

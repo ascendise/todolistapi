@@ -4,6 +4,7 @@ import ch.ascendise.todolistapi.checklist.Checklist
 import ch.ascendise.todolistapi.checklist.ChecklistService
 import ch.ascendise.todolistapi.task.Task
 import ch.ascendise.todolistapi.task.TaskService
+import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
 import org.hamcrest.core.Is.`is`
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.context.support.WithAnonymousUser
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
@@ -34,6 +36,7 @@ class UserIT {
     @Autowired private lateinit var userRepository: UserRepository
     @Autowired private lateinit var taskService: TaskService
     @Autowired private lateinit var checklistService: ChecklistService
+    @MockkBean private lateinit var jwtDecoder: JwtDecoder
 
     @AfterEach
     fun tearDown() {

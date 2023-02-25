@@ -10,7 +10,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import org.hamcrest.core.Is.`is`
 import org.junit.jupiter.api.AfterEach
@@ -21,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -36,6 +39,7 @@ internal class ChecklistIT {
     @Autowired private lateinit var userRepository: UserRepository
     @Autowired private lateinit var checklistRepository: ChecklistRepository
     @Autowired private lateinit var taskRepository: TaskRepository
+    @MockkBean private lateinit var jwtDecoder: JwtDecoder
     private lateinit var jackson: ObjectMapper
     private lateinit var jwt: Jwt
 

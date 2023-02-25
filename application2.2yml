@@ -1,0 +1,20 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://dev-ypizy20t.us.auth0.com/
+          jwk-set-uri:  https://dev-ypizy20t.us.auth0.com/.well-known/jwks.json
+oauth2:
+  audience: https://ascendise.todolistapi.ch
+#  jpa:
+#    hibernate:
+#      ddl-auto: "update"
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/todolistdb
+#    username: spring
+#    password: lunafreya
+#    driver-class-name: "com.mysql.cj.jdbc.Driver"
+#  output:
+#    ansi:
+#      enabled: "DETECT"
