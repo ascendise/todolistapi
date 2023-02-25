@@ -17,7 +17,7 @@ internal class ChecklistServiceTest {
 
     private val checklistRepository = mockk<ChecklistRepository>()
     private val taskService = mockk<TaskService>()
-    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
+    private val user = User(id = 100, subject = "auth-oauth2|123451234512345")
     private lateinit var service: ChecklistService
 
     @BeforeEach

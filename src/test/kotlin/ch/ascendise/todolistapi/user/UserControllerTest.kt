@@ -29,17 +29,17 @@ internal class UserControllerTest {
         val subject = "auth|12345"
         val jwt = mockk<Jwt>()
         every { jwt.subject } returns subject
-        val expectedUser = User(id = 101, username = "John Doe", subject = subject)
+        val expectedUser = User(id = 101, subject = subject)
         expectedUser.add(linkTo<UserController> { getCurrentUser(expectedUser) }.withSelfRel())
         expectedUser.add(linkTo<UserController> { getCurrentUser(expectedUser) }.withRel("user"))
-        val user = User(id = 101, username = "John Doe", subject = subject)
+        val user = User(id = 101, subject = subject)
         val actualUser = controller.getCurrentUser(user)
         assertEquals(expectedUser, actualUser)
     }
 
     @Test
     fun `should delete user and return a NO CONTENT status`() {
-        val user =  User(id = 101, username = "John Doe", subject = "auth|12345")
+        val user =  User(id = 101, subject = "auth|12345")
         justRun { userService.delete(user) }
         val response = controller.deleteCurrentUser(user)
         assertEquals(HttpStatus.NO_CONTENT, response.statusCode)

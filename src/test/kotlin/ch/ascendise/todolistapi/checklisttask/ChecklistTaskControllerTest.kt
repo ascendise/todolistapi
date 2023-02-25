@@ -26,7 +26,7 @@ internal class ChecklistTaskControllerTest {
     private val checklistTaskModelAssembler = ChecklistTaskModelAssembler()
     private val checklistModelAssembler = ChecklistModelAssembler(TaskModelAssembler())
 
-    private val user = User(id = 101, username = "Nico Nussmueller", subject = "auth|120104")
+    private val user = User(id = 101, subject = "auth|120104")
 
     @BeforeEach
     fun setUp() {
@@ -72,7 +72,7 @@ internal class ChecklistTaskControllerTest {
     }
 
     private fun addExpectedLinks(dto: ChecklistTaskResponseDto): ChecklistTaskResponseDto {
-        val dummyUser = User(id = 101, username = "", subject = "")
+        val dummyUser = User(id = 101, subject = "")
         return dto.add(
             linkTo<ChecklistController> { getChecklist(dto.checklistId, dummyUser) }.withRel("checklist"),
             linkTo<TaskController> { getTask(dummyUser, dto.taskId) }.withRel("task"),

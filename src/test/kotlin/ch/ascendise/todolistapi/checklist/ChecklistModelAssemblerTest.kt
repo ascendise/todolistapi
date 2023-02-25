@@ -14,7 +14,7 @@ import org.springframework.hateoas.server.mvc.linkTo
 
 internal class ChecklistModelAssemblerTest
 {
-    private val user = User(id = 101, username = "User User", subject="auth|12345")
+    private val user = User(id = 101, subject="auth|12345")
     private lateinit var checklistModelAssembler: ChecklistModelAssembler
 
     @BeforeEach

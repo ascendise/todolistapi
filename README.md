@@ -11,11 +11,13 @@ properties is generated and the placeholders have to be replaced with the real v
 ```
 spring.security.oauth2.resourceserver.jwt.issuer-uri
 spring.security.oauth2.resourceserver.jwt.jwk-set-uri
+oauth2.audience
 ```
 
 These values are needed to register the authorization-server used for authentication. The issuer uri has to match with 
 the "iss"-claim of the JWT. The jwk-set-uri is where the app gets the info to validate the signature of your JWT.
-It should be something along the lines of "*/.well-known/jwks.json"
+It should be something along the lines of "*/.well-known/jwks.json". The ``oauth2.audience`` needs to be the same as 
+the aud-claim in the JWT.
 
 ### Datasource
 
@@ -84,8 +86,8 @@ Make sure to not have any spaces behind commas. You can also use wildcards in th
 The documentation for the API is a Swagger-page located at {your-url}/swagger-ui/index.html
 
 ### Authentication
-The API uses OAuth2 with JWTs to authenticate the user. The API should work fine with any authorization server adhering
-to the OpenIdConnect specs.
+The API uses OAuth2 with JWTs to authenticate the user. The aud-claim needs to be equal to the
+specified spring property ``oauth2.audience`` or else authorization fails with a 401 Unauthorized.
 
 ## Troubleshooting
 

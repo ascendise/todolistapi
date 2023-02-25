@@ -16,3 +16,5 @@ spring:
   output:
     ansi:
       enabled: "DETECT"
+oauth2:
+  audience: [audience]

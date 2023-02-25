@@ -20,7 +20,6 @@ class PostAuthenticationHandler(
     }
 
     private fun getUserInfo(jwt: Jwt) = User(
-        username = jwt.getClaimAsString("name"),
         subject = jwt.subject,
     )
 

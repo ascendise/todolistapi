@@ -14,7 +14,7 @@ import org.springframework.hateoas.server.mvc.linkTo
 internal class HomeControllerTest {
 
     private val controller = HomeController()
-    private val user = User(id = 101, username = "John Doe", subject = "auth|123456789")
+    private val user = User(id = 101, subject = "auth|123456789")
 
     @Test
     fun `should return links to all resources`() {

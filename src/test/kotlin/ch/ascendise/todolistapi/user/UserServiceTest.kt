@@ -28,7 +28,7 @@ internal class UserServiceTest {
         val subject = "auth|12345"
         val jwt = mockk<Jwt>()
         every { jwt.subject } returns subject
-        val expectedUser = User(id = 101, subject = subject, username = "John Doe")
+        val expectedUser = User(id = 101, subject = subject)
         every { userRepository.findBySubject(subject) } returns expectedUser
         val actualUser = service.getUser(jwt)
         assertEquals(expectedUser, actualUser)
@@ -40,7 +40,7 @@ internal class UserServiceTest {
 
     @Test
     fun `should delete user and all associated ressources`() {
-        val user = User(id = 101, subject = "auth|12345", username = "John Doe")
+        val user = User(id = 101, subject = "auth|12345")
         val checklists = listOf(
             Checklist(id = 301, name = "Checklist 1", user = user),
             Checklist(id = 302, name = "Checklist 2", user = user)
