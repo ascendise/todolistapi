@@ -17,7 +17,7 @@ internal class UserModelAssemblerTest {
 
     @Test
     fun `should add links to user`() {
-        val user = User(id = 101, subject = "auth|12345", username = "John Doe")
+        val user = User(id = 101, subject = "auth|12345")
         val userWithLinks = modelAssembler.toModel(user)
         assertEquals(2, userWithLinks.links.count())
         assertEquals("/user", userWithLinks.links.getLink("self").get().href)

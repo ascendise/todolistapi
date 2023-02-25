@@ -19,7 +19,7 @@ internal class TaskControllerTest {
     private lateinit var controller: TaskController
     private val taskService = mockk<TaskService>()
     private val taskModelAssembler = TaskModelAssembler()
-    private val user = User(id = 101, username = "John Doe", subject = "auth|12345")
+    private val user = User(id = 101, subject = "auth|12345")
 
     @BeforeEach
     fun setUp() {

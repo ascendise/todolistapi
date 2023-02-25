@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 class ChecklistTaskModelAssembler: RepresentationModelAssembler<ChecklistTaskResponseDto, ChecklistTaskResponseDto> {
 
     override fun toModel(relation: ChecklistTaskResponseDto): ChecklistTaskResponseDto {
-        val dummyUser = User(-1, "", "")
+        val dummyUser = User(-1, "")
         return relation.add(
             linkTo<ChecklistController> { getChecklist(relation.checklistId, dummyUser) }.withRel("checklist"),
             linkTo<TaskController> { getTask(dummyUser, relation.taskId) }.withRel("task"),

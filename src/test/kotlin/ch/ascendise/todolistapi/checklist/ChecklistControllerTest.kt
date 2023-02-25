@@ -23,7 +23,7 @@ internal class ChecklistControllerTest
 
     private val checklistService = mockk<ChecklistService>()
     private val checklistModelAssembler = mockk<ChecklistModelAssembler>();
-    private val user = User(id = 101, username = "Max Muster", subject = "auth|54321")
+    private val user = User(id = 101, subject = "auth|54321")
 
     @BeforeEach
     fun setUp() {

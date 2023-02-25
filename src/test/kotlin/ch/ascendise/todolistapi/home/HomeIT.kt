@@ -27,7 +27,7 @@ internal class HomeIT {
     @Autowired private lateinit var mockMvc: MockMvc
     @Autowired private lateinit var userRepository: UserRepository
 
-    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
+    private val user = User(id = 100, subject = "auth-oauth2|123451234512345")
     private val jwt = mockk<Jwt>()
 
     @BeforeEach
@@ -43,9 +43,8 @@ internal class HomeIT {
 
     private fun setUpMockJwt() {
         every { jwt.subject }.returns(user.subject)
-        every { jwt.getClaimAsString("given_name") }.returns(user.username)
         every { jwt.hasClaim(any()) }.answers { callOriginal() }
-        every { jwt.claims }.returns(mapOf("name" to user.username, "sub" to user.subject))
+        every { jwt.claims }.returns(mapOf("sub" to user.subject))
     }
 
     @Test

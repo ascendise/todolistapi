@@ -33,7 +33,7 @@ internal class TaskServiceTest {
             description = "Test TaskService",
             startDate = LocalDate.now(),
             endDate = LocalDate.now().plusDays(1),
-            user = User(username = "", subject = "")
+            user = User(subject = "")
         )
         every { taskRepository.save(task) } returns task
         service.create(task)
@@ -48,7 +48,7 @@ internal class TaskServiceTest {
             description = "Test TaskService",
             startDate = LocalDate.now().plusDays(1),
             endDate = LocalDate.now(),
-            user = User(username = "", subject = "")
+            user = User(subject = "")
         )
         assertThrows<InvalidDateRangeTaskException> { service.create(task) }
     }
@@ -60,7 +60,7 @@ internal class TaskServiceTest {
             name = "",
             description = "",
             endDate = null,
-            user = User(username = "", subject = "")
+            user = User(subject = "")
         )
         every { taskRepository.save(task) } returns task
         service.create(task)
@@ -74,7 +74,7 @@ internal class TaskServiceTest {
             name = "",
             description = "",
             startDate = LocalDate.now().plusDays(1),
-            user = User(username = "", subject = "")
+            user = User(subject = "")
         )
         every { taskRepository.save(task) } returns task
         service.create(task)
@@ -88,7 +88,7 @@ internal class TaskServiceTest {
             name = "",
             description = "",
             startDate = LocalDate.now().minusDays(1),
-            user = User(username = "", subject = "")
+            user = User(subject = "")
         )
         assertThrows<InvalidTaskException> { service.create(task) }
     }
@@ -96,7 +96,7 @@ internal class TaskServiceTest {
     @Test
     fun `should return tasks for given user`()
     {
-        val user = User(id = 101, username = "John Doe", subject = "auth|12345")
+        val user = User(id = 101, subject = "auth|12345")
         val task1 = Task(id = 201, name = "Task1", description = "Task1", startDate = LocalDate.now(), user = user)
         val task2 = Task(id = 202, name = "Task2", description = "Task2", endDate = LocalDate.now(), user = user)
         every { taskRepository.findAllByUserId(101) } returns listOf(task1, task2)
@@ -118,7 +118,7 @@ internal class TaskServiceTest {
 
     @Test
     fun `should return task with given user id`() {
-        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345")
         val task = Task(id = 201, name = "Dummy", user = user)
         every { taskRepository.findByIdAndUserId(task.id, user.id)} returns Optional.of(task)
         val returnedTask = service.getById(user.id, task.id)
@@ -128,14 +128,14 @@ internal class TaskServiceTest {
 
     @Test
     fun `should throw exception when task is not found`() {
-        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345")
         every { taskRepository.findByIdAndUserId(201, user.id) } returns Optional.empty()
         assertThrows<TaskNotFoundException> { service.getById(user.id, 201) }
     }
 
     @Test
     fun `should allow task with start date in past when updating`() {
-        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345")
         val oldTask = Task(id = 201, name = "Old Task", description = "This task has an old description",
             startDate = LocalDate.now().minusDays(1), isDone = false, user = user)
         val newTask = Task(id = 201, name = "Updated Task", description = "This task has a new description",
@@ -149,7 +149,7 @@ internal class TaskServiceTest {
 
     @Test
     fun `should update task`() {
-        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345")
         val oldTask = Task(id = 201, name = "Old Task", description = "This task has an old description", isDone = false, user = user)
         val newTask = Task(id = 201, name = "Updated Task", description = "This task has a new description", isDone = true, user = user)
         every { taskRepository.findByIdAndUserId(oldTask.id, user.id) } returns Optional.of(oldTask)
@@ -162,7 +162,7 @@ internal class TaskServiceTest {
 
     @Test
     fun `should throw TaskNotFoundException when task to be updated was not found`() {
-        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345")
         val task = Task(id = 201, name = "Updated Task", description = "This task has a new description", user = user)
         every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.empty()
         assertThrows<TaskNotFoundException> { service.update(task) }
@@ -171,7 +171,7 @@ internal class TaskServiceTest {
 
     @Test
     fun `should throw InvalidDateRangeTaskException if updated task has start date before end date `() {
-        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345")
         val oldTask = Task(id = 201, name = "Old Task", user = user)
         val task = Task(id = 201, name = "Updated Task", user = user, endDate = LocalDate.now().minusDays(1))
         every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(oldTask)
@@ -182,7 +182,7 @@ internal class TaskServiceTest {
     @Test
     fun `should throw InvalidDateRangeTaskException if new start date is before old start date`() {
 
-        val user = User(id = 101, subject = "auth-oauth2|123451234512345", username = "Max")
+        val user = User(id = 101, subject = "auth-oauth2|123451234512345")
         val oldTask = Task(id = 201, name = "Old Task", user = user, startDate = LocalDate.now().plusDays(2))
         val task = Task(id = 201, name = "Updated Task", user = user, endDate = LocalDate.now().plusDays(1))
         every { taskRepository.findByIdAndUserId(task.id, user.id) } returns Optional.of(oldTask)

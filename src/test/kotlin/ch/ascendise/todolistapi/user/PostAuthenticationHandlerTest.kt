@@ -21,15 +21,13 @@ internal class PostAuthenticationHandlerTest
         val event = mockk<AuthenticationSuccessEvent>()
         val jwt = mockk<Jwt>()
         every { event.authentication.principal } returns jwt
-        every { jwt.getClaimAsString("name") } returns "John Doe"
         every { jwt.subject } returns "auth|12345"
         every { userRepository.existsBySubject("auth|12345") } returns false
-        val expectedCreatedUser = User(id = 0, username = "John Doe", subject = "auth|12345")
+        val expectedCreatedUser = User(id = 0, subject = "auth|12345")
         every { userRepository.save(expectedCreatedUser) } returns expectedCreatedUser
         postAuthHandler.onApplicationEvent(event)
         verifyAll {
             event.authentication.principal
-            jwt.getClaimAsString("name")
             jwt.subject
             userRepository.existsBySubject("auth|12345")
             userRepository.save(expectedCreatedUser)
@@ -41,15 +39,13 @@ internal class PostAuthenticationHandlerTest
         val event = mockk<AuthenticationSuccessEvent>()
         val jwt = mockk<Jwt>()
         every { event.authentication.principal } returns jwt
-        every { jwt.getClaimAsString("name") } returns "John Doe"
         every { jwt.subject } returns "auth|12345"
         every { userRepository.existsBySubject("auth|12345") } returns true
-        val expectedCreatedUser = User(id = 0, username = "John Doe", subject = "auth|12345")
+        val expectedCreatedUser = User(id = 0, subject = "auth|12345")
         every { userRepository.save(expectedCreatedUser) } returns expectedCreatedUser
         postAuthHandler.onApplicationEvent(event)
         verifyAll{
             event.authentication.principal
-            jwt.getClaimAsString("name")
             jwt.subject
             userRepository.existsBySubject("auth|12345")
         }

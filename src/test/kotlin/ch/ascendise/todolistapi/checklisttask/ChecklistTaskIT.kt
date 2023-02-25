@@ -43,7 +43,7 @@ internal class ChecklistTaskIT {
     @Autowired private lateinit var checklistRepository: ChecklistRepository
     private lateinit var jackson: ObjectMapper
     private lateinit var jwt: Jwt
-    private var user = User(id = 0, username = "Max Muster", subject = "auth|12345")
+    private var user = User(id = 0, subject = "auth|12345")
     private var checklist = Checklist(name = "My Checklist", user = user, tasks = mutableListOf(
         Task(name = "My Task 1", user = user),
         Task(name = "My Task 2", user = user)
@@ -63,9 +63,8 @@ internal class ChecklistTaskIT {
     fun getJwt(): Jwt {
         val jwt = mockk<Jwt>()
         every { jwt.subject }.returns(user.subject)
-        every { jwt.getClaimAsString("name")}.returns(user.username)
         every { jwt.hasClaim(any())}.answers { callOriginal() }
-        every { jwt.claims}.returns(mapOf( "name" to user.username, "sub" to user.subject))
+        every { jwt.claims}.returns(mapOf("sub" to user.subject))
         return jwt
     }
 

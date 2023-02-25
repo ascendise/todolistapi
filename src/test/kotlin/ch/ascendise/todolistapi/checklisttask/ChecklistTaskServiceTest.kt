@@ -20,7 +20,7 @@ internal class ChecklistTaskServiceTest {
     private val taskRepo = mockk<TaskRepository>()
     private val checklistRepo =  mockk<ChecklistRepository>()
 
-    private val user = User(id = 100, username = "user", subject = "auth-oauth2|123451234512345")
+    private val user = User(id = 100, subject = "auth-oauth2|123451234512345")
 
     @BeforeEach
     fun setUp() {

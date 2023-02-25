@@ -15,7 +15,7 @@ internal class ChecklistTaskModelAssemblerTest
 
     @Test
     fun `should add links to entity`() {
-        val dummyUser = User(-1, "", "")
+        val dummyUser = User(-1, "")
         val checklistTask = ChecklistTaskResponseDto(taskId = 201, checklistId = 301)
         val checklistTaskWithLinks = modelAssembler.toModel(checklistTask)
         val expectedEntity = ChecklistTaskResponseDto(taskId = 201, checklistId = 301).apply {
